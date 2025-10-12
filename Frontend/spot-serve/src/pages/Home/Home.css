@@ -1,0 +1,69 @@
+.home {
+  font-family: "Poppins", sans-serif;
+  color: #222;
+}
+
+/* Hero Section */
+.hero-section {
+  background: linear-gradient(to right, #007bff, #0056b3);
+  color: #fff;
+  min-height: 85vh;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: 700;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  margin: 1rem 0;
+}
+
+.hero-btn {
+  font-size: 1.1rem;
+  padding: 0.6rem 1.5rem;
+  border-radius: 30px;
+}
+
+/* About Section */
+.about-img {
+  width: 80%;
+  max-width: 350px;
+}
+
+.section-title {
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.section-text {
+  color: #555;
+  line-height: 1.7;
+}
+
+/* Features Section */
+.features-section {
+  background-color: #f8f9fa;
+}
+
+.feature-card {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 15px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 1rem;
+}
