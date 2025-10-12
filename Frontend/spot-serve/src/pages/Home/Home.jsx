@@ -1,6 +1,7 @@
 import React from "react";
 import "./Home.css";
 import Navbar from "../../components/Navbar/Navbar";
+import Footer from "../../components/Footer/Footer";
 import { Container, Row, Col, Button } from "react-bootstrap";
 
 const Home = () => {
@@ -87,7 +88,10 @@ const Home = () => {
         </Container>
       </section>
     </div>
+    <Footer />
     </>
+
+   
   );
 };
 
