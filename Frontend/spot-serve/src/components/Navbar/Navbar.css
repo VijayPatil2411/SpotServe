@@ -42,3 +42,19 @@
   outline: 3px solid rgba(79,172,254,0.18);
   outline-offset: 2px;
 }
+
+/* Login button (large screens) */
+.nav-login-btn {
+  background: linear-gradient(90deg, #4facfe, #00bfff);
+  color: #042027;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 22px;
+  box-shadow: 0 6px 18px rgba(79, 172, 254, 0.12);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.nav-login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(79, 172, 254, 0.16);
+}

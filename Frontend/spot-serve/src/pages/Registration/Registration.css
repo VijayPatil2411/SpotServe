@@ -258,3 +258,22 @@
     opacity: 1;
   }
 }
+
+/* exit animation when swapping to Login */
+.reg-modal.exiting {
+  animation: reg-slide-out 0.35s ease forwards;
+}
+
+.reg-overlay.overlay-exiting {
+  animation: reg-fade-out 0.35s ease forwards;
+}
+
+@keyframes reg-slide-out {
+  from { transform: translateY(0) scale(1); opacity: 1; }
+  to   { transform: translateX(14%) scale(.98); opacity: 0; }
+}
+
+@keyframes reg-fade-out {
+  from { background: rgba(2, 6, 23, 0.55); }
+  to   { background: rgba(2, 6, 23, 0.25); }
+}
