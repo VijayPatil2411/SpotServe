@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import "./Home.css";
-import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import { Container, Row, Col, Button } from "react-bootstrap";
 import EmergencyHelp from "../EmergencyHelp/EmergencyHelp";
@@ -14,7 +13,7 @@ const Home = () => {
 
   return (
     <>
-      <Navbar />
+      
       <div className="home">
         {/* Hero Section */}
         <section className="hero-section d-flex align-items-center justify-content-center text-center">

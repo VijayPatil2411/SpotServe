@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import "./Navbar.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Registration from "../../pages/Registration/Registration";
-import Login from "../../pages/Login/Login"; // <-- import login modal
+import Login from "../../pages/Login/Login";
 
 const Navbar = () => {
   const [showRegistration, setShowRegistration] = useState(false);
@@ -45,27 +45,33 @@ const Navbar = () => {
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav ms-auto align-items-lg-center">
               <li className="nav-item">
-                <Link className="nav-link" to="/">
-                  Home
-                </Link>
+                <Link className="nav-link" to="/">Home</Link>
               </li>
 
               <li className="nav-item">
-                <Link className="nav-link" to="/services">
-                  Services
-                </Link>
+                <Link className="nav-link" to="/services">Services</Link>
               </li>
 
               <li className="nav-item">
-                <Link className="nav-link" to="/about">
-                  About
-                </Link>
+                <Link className="nav-link" to="/our-story">Our Story</Link>
               </li>
 
-              <li className="nav-item d-lg-none">
-                {/* show Register & Login as normal nav items on small screens */}
+              <li className="nav-item">
+                <Link className="nav-link" to="/about-us">About Us</Link>
+              </li>
+
+              <li className="nav-item">
+                <Link className="nav-link" to="/contact-us">Contact Us</Link>
+              </li>
+
+              <li className="nav-item">
+                <Link className="nav-link" to="/terms-privacy">Terms & Privacy</Link>
+              </li>
+
+              {/* Mobile buttons */}
+              <li className="nav-item d-lg-none mt-2">
                 <button
-                  className="btn btn-sm btn-outline-light mt-2 w-100 mb-1"
+                  className="btn btn-sm btn-outline-light w-100 mb-1"
                   onClick={() => setShowLogin(true)}
                 >
                   Login
@@ -78,8 +84,8 @@ const Navbar = () => {
                 </button>
               </li>
 
-              <li className="nav-item d-none d-lg-block ms-2">
-                {/* show Login & Register as pill buttons on large screens */}
+              {/* Desktop buttons */}
+              <li className="nav-item d-none d-lg-flex ms-2">
                 <button
                   className="btn nav-login-btn btn-sm me-2"
                   onClick={() => setShowLogin(true)}
@@ -98,12 +104,15 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Modal popups */}
+      {/* Modals */}
       <Registration
         show={showRegistration}
         onClose={() => setShowRegistration(false)}
       />
-      <Login show={showLogin} onClose={() => setShowLogin(false)} />
+      <Login
+        show={showLogin}
+        onClose={() => setShowLogin(false)}
+      />
     </>
   );
 };
