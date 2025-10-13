@@ -1,0 +1,72 @@
+/* Overlay + modal */
+.eh-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 20px;
+}
+
+.eh-modal {
+  background: #ffffff;
+  width: 100%;
+  max-width: 520px;
+  border-radius: 12px;
+  padding: 22px;
+  position: relative;
+  box-shadow: 0 18px 50px rgba(2, 6, 23, 0.6);
+  animation: eh-fade .18s ease-out;
+}
+
+/* close button */
+.eh-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: none;
+  background: none;
+  font-size: 1.6rem;
+  color: #6b7280;
+  cursor: pointer;
+}
+.eh-close:hover { color: #111827; }
+
+/* header */
+.eh-title {
+  margin: 6px 0 2px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  text-align: center;
+}
+.eh-status {
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+
+/* form */
+.eh-form .form-control {
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.eh-detect {
+  min-width: 110px;
+  white-space: nowrap;
+}
+
+/* small screens */
+@media (max-width: 576px) {
+  .eh-modal { padding: 18px; }
+  .eh-title { font-size: 1.1rem; }
+}
+
+/* animations */
+@keyframes eh-fade {
+  from { transform: translateY(6px) scale(.98); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}

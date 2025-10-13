@@ -20,19 +20,19 @@ const Footer = () => {
         <div className="footer-section">
           <h4>About Us</h4>
           <ul>
-            <li><a href="#">Our Story</a></li>
-            <li><a href="#">Careers</a></li>
-            <li><a href="#">Terms & Privacy</a></li>
+            <li>Our Story</li>
+            <li> Careers </li>
+            <li> Terms & Privacy </li>
           </ul>
         </div>
 
         <div className="footer-section">
           <h4>Follow Us</h4>
           <div className="social-icons">
-            <a href="#"><i className="bi bi-facebook"></i></a>
-            <a href="#"><i className="bi bi-twitter"></i></a>
-            <a href="#"><i className="bi bi-instagram"></i></a>
-            <a href="#"><i className="bi bi-linkedin"></i></a>
+             <i className="bi bi-facebook"></i> 
+             <i className="bi bi-twitter"></i> 
+             <i className="bi bi-instagram"></i> 
+             <i className="bi bi-linkedin"></i> 
           </div>
         </div>
       </div>
