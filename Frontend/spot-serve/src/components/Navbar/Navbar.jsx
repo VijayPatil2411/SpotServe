@@ -1,11 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./Navbar.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Registration from "../../pages/Registration/Registration";
+import Login from "../../pages/Login/Login"; // <-- import login modal
 
 const Navbar = () => {
   const [showRegistration, setShowRegistration] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+
+  useEffect(() => {
+    const openRegistration = () => setShowRegistration(true);
+    window.addEventListener("open-registration", openRegistration);
+    return () =>
+      window.removeEventListener("open-registration", openRegistration);
+  }, []);
+
+  useEffect(() => {
+    const openLogin = () => setShowLogin(true);
+    window.addEventListener("open-login", openLogin);
+    return () => window.removeEventListener("open-login", openLogin);
+  }, []);
 
   return (
     <>
@@ -48,17 +63,29 @@ const Navbar = () => {
               </li>
 
               <li className="nav-item d-lg-none">
-                {/* show Register as normal nav item on small screens */}
+                {/* show Register & Login as normal nav items on small screens */}
                 <button
-                  className="btn btn-sm btn-outline-light mt-2 w-100"
+                  className="btn btn-sm btn-outline-light mt-2 w-100 mb-1"
+                  onClick={() => setShowLogin(true)}
+                >
+                  Login
+                </button>
+                <button
+                  className="btn btn-sm btn-outline-light w-100"
                   onClick={() => setShowRegistration(true)}
                 >
                   Register
                 </button>
               </li>
 
-              <li className="nav-item d-none d-lg-block ms-3">
-                {/* show Register as small pill button on large screens */}
+              <li className="nav-item d-none d-lg-block ms-2">
+                {/* show Login & Register as pill buttons on large screens */}
+                <button
+                  className="btn nav-login-btn btn-sm me-2"
+                  onClick={() => setShowLogin(true)}
+                >
+                  Login
+                </button>
                 <button
                   className="btn nav-register-btn btn-sm"
                   onClick={() => setShowRegistration(true)}
@@ -71,8 +98,12 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Registration modal popup (follows your page folder structure) */}
-      <Registration show={showRegistration} onClose={() => setShowRegistration(false)} />
+      {/* Modal popups */}
+      <Registration
+        show={showRegistration}
+        onClose={() => setShowRegistration(false)}
+      />
+      <Login show={showLogin} onClose={() => setShowLogin(false)} />
     </>
   );
 };

@@ -14,6 +14,10 @@ const Registration = ({ show, onClose }) => {
   const [submitting, setSubmitting] = useState(false);
   const popupRef = useRef(null);
 
+  // new: control exit animation and modal ref
+  const [exiting, setExiting] = useState(false);
+  const modalRef = useRef(null);
+
   useEffect(() => {
     document.body.style.overflow = show ? "hidden" : "";
     return () => {
@@ -54,6 +58,23 @@ const Registration = ({ show, onClose }) => {
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, [onClose]);
+
+  // When exit animation completes: dispatch event to open login + close modal
+  useEffect(() => {
+    if (!modalRef.current) return;
+    const node = modalRef.current;
+    function onAnimEnd(e) {
+      if (!exiting) return; // only act when we initiated exiting
+      // open login in the app
+      window.dispatchEvent(new Event("open-login"));
+      // close this modal via parent
+      if (typeof onClose === "function") onClose();
+      // reset exiting flag
+      setExiting(false);
+    }
+    node.addEventListener("animationend", onAnimEnd);
+    return () => node.removeEventListener("animationend", onAnimEnd);
+  }, [exiting, onClose]);
 
   const validate = () => {
     const e = {};
@@ -96,7 +117,7 @@ const Registration = ({ show, onClose }) => {
       setTimeout(() => {
         setSubmitting(false);
         alert("Registration successful — please login.");
-        onClose();
+        if (typeof onClose === "function") onClose();
       }, 700);
     } catch {
       setSubmitting(false);
@@ -125,12 +146,17 @@ const Registration = ({ show, onClose }) => {
     }, 500);
   };
 
+  // user clicked "Login" -> start exit animation to swap to login modal
+  const handleSwapToLogin = () => {
+    setExiting(true);
+  };
+
   if (!show) return null;
 
   return (
-    <div className="reg-overlay" role="dialog" aria-modal="true">
+    <div className={`reg-overlay ${exiting ? "overlay-exiting" : ""}`} role="dialog" aria-modal="true">
       <div className="reg-backdrop" aria-hidden />
-      <div className="reg-modal shadow">
+      <div className={`reg-modal shadow ${exiting ? "exiting" : ""}`} ref={modalRef}>
         <button className="reg-close" onClick={onClose} aria-label="Close">
           &times;
         </button>
@@ -250,9 +276,21 @@ const Registration = ({ show, onClose }) => {
 
           <div className="reg-footer-text mt-3 text-center">
             Already have an account?{" "}
-            <button type="button" className="link-like" onClick={onClose}>
+            <span
+              role="button"
+              tabIndex={0}
+              className="link-like"
+              onClick={handleSwapToLogin}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleSwapToLogin();
+                }
+              }}
+              style={{ cursor: "pointer" }}
+            >
               Login
-            </button>
+            </span>
           </div>
         </form>
       </div>
