@@ -18,6 +18,7 @@ const Navbar = () => {
 
   const navigate = useNavigate();
 
+  // ✅ Modal listeners (Register / Login)
   useEffect(() => {
     const openRegistration = () => setShowRegistration(true);
     const openLogin = () => setShowLogin(true);
@@ -29,6 +30,7 @@ const Navbar = () => {
     };
   }, []);
 
+  // ✅ Keep user in sync after login/logout
   useEffect(() => {
     const handleLogin = () => {
       const stored = localStorage.getItem("user");
@@ -43,6 +45,7 @@ const Navbar = () => {
     };
   }, []);
 
+  // ✅ Logout logic
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -51,6 +54,7 @@ const Navbar = () => {
     navigate("/");
   };
 
+  // ✅ Role-based navigation
   const goToDashboard = () => {
     if (user?.role === "MECHANIC") navigate("/mechanic/dashboard");
     else if (user?.role === "ADMIN") navigate("/admin/dashboard");
@@ -60,10 +64,17 @@ const Navbar = () => {
   const goToCreateRequest = () => navigate("/dashboard");
   const goToAddVehicle = () => setShowAddVehicle(true);
   const goToMyRequests = () => navigate("/my-requests");
+
   const goToProfile = () => {
     if (user?.role === "MECHANIC") navigate("/mechanic/profile");
     else navigate("/profile");
   };
+
+  // ✅ Admin-specific navigation
+  const goToAdminDashboard = () => navigate("/admin/dashboard");
+  const goToAdminMechanics = () => navigate("/admin/mechanics");
+  const goToAdminRevenue = () => navigate("/admin/revenue");
+  const goToAdminReports = () => navigate("/admin/reports");
 
   return (
     <>
@@ -81,7 +92,7 @@ const Navbar = () => {
             <Link className="nav-link-custom" to="/contact-us">Contact Us</Link>
             <Link className="nav-link-custom" to="/terms-privacy">Terms & Privacy</Link>
 
-            {/* 🔹 Guest Buttons */}
+            {/* 🔹 Guest buttons */}
             {!user ? (
               <>
                 <button className="btn-login" onClick={() => setShowLogin(true)}>
@@ -93,7 +104,7 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                {/* 🔹 Role-Based Options */}
+                {/* 🔹 CUSTOMER buttons */}
                 {user.role === "CUSTOMER" && (
                   <>
                     <button className="btn-nav" onClick={goToDashboard}>Dashboard</button>
@@ -104,20 +115,28 @@ const Navbar = () => {
                   </>
                 )}
 
+                {/* 🔹 MECHANIC buttons */}
                 {user.role === "MECHANIC" && (
                   <>
                     <button className="btn-nav" onClick={goToDashboard}>Dashboard</button>
-                    <button className="btn-nav" onClick={goToProfile}>Profile</button> {/* ✅ Added Mechanic Profile */}
+                    <button className="btn-nav" onClick={goToProfile}>Profile</button>
                   </>
                 )}
 
+                {/* 🔹 ADMIN buttons */}
                 {user.role === "ADMIN" && (
                   <>
-                    <button className="btn-nav" onClick={goToDashboard}>Admin Dashboard</button>
+                    <button className="btn-nav" onClick={goToAdminDashboard}>Dashboard</button>
+                    <button className="btn-nav" onClick={goToAdminMechanics}>Mechanics</button>
+                    <button className="btn-nav" onClick={goToAdminRevenue}>Revenue</button>
+                    <button className="btn-nav" onClick={goToAdminReports}>Reports</button>
                   </>
                 )}
 
-                <button className="btn-logout" onClick={handleLogout}>Logout</button>
+                {/* 🔹 Common logout */}
+                <button className="btn-logout" onClick={handleLogout}>
+                  Logout
+                </button>
               </>
             )}
           </nav>

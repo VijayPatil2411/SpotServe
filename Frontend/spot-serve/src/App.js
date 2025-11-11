@@ -22,7 +22,8 @@ import MechanicDashboard from "./pages/Mechanic/MechanicDashboard";
 import MechanicProfile from "./pages/Mechanic/MechanicProfile";
 
 // 🔹 Admin Pages
-import AdminDashboard from "./pages/Admin/AdminDashboard"; // ✅ Added Admin Dashboard
+import AdminDashboard from "./pages/Admin/AdminDashboard"; // ✅ Admin Dashboard
+import AdminMechanics from "./pages/Admin/AdminMechanics"; // ✅ Added Manage Mechanics
 
 const App = () => {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -105,6 +106,14 @@ const App = () => {
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/mechanics"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AdminMechanics />
             </ProtectedRoute>
           }
         />
