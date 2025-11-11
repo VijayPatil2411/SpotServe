@@ -3,20 +3,19 @@ import "./Registration.css";
 
 const Registration = ({ show, onClose }) => {
   const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
+    name: "",
     email: "",
-    mobile: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const popupRef = useRef(null);
-
-  // new: control exit animation and modal ref
   const [exiting, setExiting] = useState(false);
   const modalRef = useRef(null);
+
+  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080/api/auth";
 
   useEffect(() => {
     document.body.style.overflow = show ? "hidden" : "";
@@ -26,68 +25,16 @@ const Registration = ({ show, onClose }) => {
     };
   }, [show]);
 
-  useEffect(() => {
-    function handleMessage(event) {
-      try {
-        if (event.origin !== window.location.origin) return;
-      } catch {
-        return;
-      }
-
-      const data = event.data;
-      if (!data || typeof data !== "object") return;
-
-      if (data.type === "oauth" && data.provider === "google") {
-        if (popupRef.current && !popupRef.current.closed) {
-          popupRef.current.close();
-          popupRef.current = null;
-        }
-        alert("Signed in with Google successfully.");
-        onClose();
-      }
-
-      if (data.type === "oauth_error") {
-        if (popupRef.current && !popupRef.current.closed) {
-          popupRef.current.close();
-          popupRef.current = null;
-        }
-        alert(data.message || "Google sign-in failed");
-      }
-    }
-
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [onClose]);
-
-  // When exit animation completes: dispatch event to open login + close modal
-  useEffect(() => {
-    if (!modalRef.current) return;
-    const node = modalRef.current;
-    function onAnimEnd(e) {
-      if (!exiting) return; // only act when we initiated exiting
-      // open login in the app
-      window.dispatchEvent(new Event("open-login"));
-      // close this modal via parent
-      if (typeof onClose === "function") onClose();
-      // reset exiting flag
-      setExiting(false);
-    }
-    node.addEventListener("animationend", onAnimEnd);
-    return () => node.removeEventListener("animationend", onAnimEnd);
-  }, [exiting, onClose]);
-
   const validate = () => {
     const e = {};
-    if (!form.firstName.trim()) e.firstName = "First name is required";
-    if (!form.lastName.trim()) e.lastName = "Last name is required";
+    if (!form.name.trim()) e.name = "Name is required";
     if (!form.email.trim()) e.email = "Email is required";
     else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Invalid email";
-    if (!form.mobile.trim()) e.mobile = "Mobile is required";
-    else if (!/^\d{10}$/.test(form.mobile)) e.mobile = "Enter 10 digit number";
-    if (!form.password) e.password = "Password is required";
+    if (!form.phone.trim()) e.phone = "Phone is required";
+    else if (!/^\d{10}$/.test(form.phone)) e.phone = "Enter valid 10-digit number";
+    if (!form.password) e.password = "Password required";
     else if (form.password.length < 6) e.password = "Min 6 characters";
-    if (!form.confirmPassword) e.confirmPassword = "Confirm your password";
-    else if (form.password !== form.confirmPassword)
+    if (form.password !== form.confirmPassword)
       e.confirmPassword = "Passwords do not match";
     return e;
   };
@@ -98,30 +45,36 @@ const Registration = ({ show, onClose }) => {
     setErrors((s) => ({ ...s, [name]: undefined }));
   };
 
-  const handleSubmit = async (ev) => {
-    ev.preventDefault();
-    const e = validate();
-    setErrors(e);
-    if (Object.keys(e).length) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const errs = validate();
+    setErrors(errs);
+    if (Object.keys(errs).length) return;
 
     setSubmitting(true);
     try {
-      console.log("Register payload:", {
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        email: form.email.trim(),
-        mobile: form.mobile.trim(),
-        password: form.password,
+      const res = await fetch(`${API_BASE}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          password: form.password,
+        }),
       });
 
-      setTimeout(() => {
-        setSubmitting(false);
-        alert("Registration successful — please login.");
-        if (typeof onClose === "function") onClose();
-      }, 700);
-    } catch {
+      const text = await res.text();
+      alert(text);
+
+      if (text.toLowerCase().includes("successful")) {
+        onClose();
+        window.dispatchEvent(new Event("open-login"));
+      }
+    } catch (err) {
+      alert("Registration failed. Try again.");
+    } finally {
       setSubmitting(false);
-      setErrors({ submit: "Registration failed. Try again." });
     }
   };
 
@@ -135,21 +88,11 @@ const Registration = ({ show, onClose }) => {
   };
 
   const handleGoogleSignIn = () => {
-    const base = process.env.REACT_APP_API_BASE || "";
-    const oauthUrl = `${base}/auth/google/authorize?popup=true`;
+    const oauthUrl = `${API_BASE}/google/authorize?popup=true`;
     popupRef.current = openCenteredPopup(oauthUrl, "google_oauth_popup", 600, 700);
-    const checkClosed = setInterval(() => {
-      if (!popupRef.current || popupRef.current.closed) {
-        clearInterval(checkClosed);
-        popupRef.current = null;
-      }
-    }, 500);
   };
 
-  // user clicked "Login" -> start exit animation to swap to login modal
-  const handleSwapToLogin = () => {
-    setExiting(true);
-  };
+  const handleSwapToLogin = () => setExiting(true);
 
   if (!show) return null;
 
@@ -157,114 +100,55 @@ const Registration = ({ show, onClose }) => {
     <div className={`reg-overlay ${exiting ? "overlay-exiting" : ""}`} role="dialog" aria-modal="true">
       <div className="reg-backdrop" aria-hidden />
       <div className={`reg-modal shadow ${exiting ? "exiting" : ""}`} ref={modalRef}>
-        <button className="reg-close" onClick={onClose} aria-label="Close">
-          &times;
-        </button>
-
+        <button className="reg-close" onClick={onClose}>&times;</button>
         <div className="reg-header">
           <div className="reg-brand">🚗</div>
           <div>
             <h3 className="reg-title">Create your SpotServe account</h3>
-            <p className="reg-sub">Quick sign up to save vehicles and track jobs</p>
+            <p className="reg-sub">Sign up to manage your vehicles and services</p>
           </div>
         </div>
 
         <form className="reg-form" onSubmit={handleSubmit} noValidate>
-          <div className="row">
-            <div className="col-12 col-md-6 mb-3">
-              <label className="form-label">First Name</label>
-              <input
-                name="firstName"
-                className={`form-control ${errors.firstName ? "is-invalid" : ""}`}
-                value={form.firstName}
-                onChange={handleChange}
-                placeholder="First name"
-                type="text"
-                autoComplete="given-name"
-              />
-              {errors.firstName && <div className="invalid-feedback">{errors.firstName}</div>}
-            </div>
-
-            <div className="col-12 col-md-6 mb-3">
-              <label className="form-label">Last Name</label>
-              <input
-                name="lastName"
-                className={`form-control ${errors.lastName ? "is-invalid" : ""}`}
-                value={form.lastName}
-                onChange={handleChange}
-                placeholder="Last name"
-                type="text"
-                autoComplete="family-name"
-              />
-              {errors.lastName && <div className="invalid-feedback">{errors.lastName}</div>}
-            </div>
+          <div className="mb-3">
+            <label className="form-label">Full Name</label>
+            <input name="name" className={`form-control ${errors.name ? "is-invalid" : ""}`}
+              value={form.name} onChange={handleChange} placeholder="Your name" />
+            {errors.name && <div className="invalid-feedback">{errors.name}</div>}
           </div>
 
           <div className="mb-3">
             <label className="form-label">Email</label>
-            <input
-              name="email"
-              className={`form-control ${errors.email ? "is-invalid" : ""}`}
-              value={form.email}
-              onChange={handleChange}
-              placeholder="you@example.com"
-              type="email"
-              autoComplete="email"
-            />
+            <input name="email" className={`form-control ${errors.email ? "is-invalid" : ""}`}
+              value={form.email} onChange={handleChange} type="email" placeholder="you@example.com" />
             {errors.email && <div className="invalid-feedback">{errors.email}</div>}
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Mobile Number</label>
-            <input
-              name="mobile"
-              className={`form-control ${errors.mobile ? "is-invalid" : ""}`}
-              value={form.mobile}
-              onChange={handleChange}
-              placeholder="10-digit mobile number"
-              type="tel"
-              autoComplete="tel"
-            />
-            {errors.mobile && <div className="invalid-feedback">{errors.mobile}</div>}
+            <label className="form-label">Phone</label>
+            <input name="phone" className={`form-control ${errors.phone ? "is-invalid" : ""}`}
+              value={form.phone} onChange={handleChange} placeholder="10-digit phone number" />
+            {errors.phone && <div className="invalid-feedback">{errors.phone}</div>}
           </div>
 
-          {/* Password Fields - default behavior */}
           <div className="row">
-            <div className="col-12 col-md-6 mb-3 position-relative">
+            <div className="col-md-6 mb-3">
               <label className="form-label">Password</label>
-              <input
-                name="password"
-                className={`form-control ${errors.password ? "is-invalid" : ""}`}
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Password"
-                type="password"
-                autoComplete="new-password"
-              />
+              <input name="password" className={`form-control ${errors.password ? "is-invalid" : ""}`}
+                value={form.password} onChange={handleChange} type="password" />
               {errors.password && <div className="invalid-feedback">{errors.password}</div>}
             </div>
-
-            <div className="col-12 col-md-6 mb-3 position-relative">
+            <div className="col-md-6 mb-3">
               <label className="form-label">Confirm Password</label>
-              <input
-                name="confirmPassword"
+              <input name="confirmPassword"
                 className={`form-control ${errors.confirmPassword ? "is-invalid" : ""}`}
-                value={form.confirmPassword}
-                onChange={handleChange}
-                placeholder="Confirm password"
-                type="password"
-                autoComplete="new-password"
-              />
-              {errors.confirmPassword && (
-                <div className="invalid-feedback">{errors.confirmPassword}</div>
-              )}
+                value={form.confirmPassword} onChange={handleChange} type="password" />
+              {errors.confirmPassword && <div className="invalid-feedback">{errors.confirmPassword}</div>}
             </div>
           </div>
 
-          {errors.submit && <div className="alert alert-danger">{errors.submit}</div>}
-
           <button type="submit" className="btn reg-submit w-100" disabled={submitting}>
-            {submitting ? "Creating account…" : "Create Account"}
+            {submitting ? "Registering…" : "Register"}
           </button>
 
           <div className="reg-google-wrap mb-3 mt-2">
@@ -276,21 +160,7 @@ const Registration = ({ show, onClose }) => {
 
           <div className="reg-footer-text mt-3 text-center">
             Already have an account?{" "}
-            <span
-              role="button"
-              tabIndex={0}
-              className="link-like"
-              onClick={handleSwapToLogin}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleSwapToLogin();
-                }
-              }}
-              style={{ cursor: "pointer" }}
-            >
-              Login
-            </span>
+            <span className="link-like" onClick={handleSwapToLogin} style={{ cursor: "pointer" }}>Login</span>
           </div>
         </form>
       </div>

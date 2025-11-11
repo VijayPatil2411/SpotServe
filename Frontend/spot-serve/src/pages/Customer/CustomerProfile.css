@@ -1,0 +1,15 @@
+.container {
+  max-width: 900px;
+}
+
+.card {
+  border-radius: 10px;
+}
+
+h2 {
+  color: #222;
+}
+
+button {
+  font-weight: 600;
+}

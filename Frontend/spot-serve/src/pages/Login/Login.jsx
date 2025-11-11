@@ -1,87 +1,23 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
 const Login = ({ show, onClose }) => {
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [showPassword] = useState(false);
   const popupRef = useRef(null);
-
-  // new: control exit animation
   const [exiting, setExiting] = useState(false);
   const modalRef = useRef(null);
+  const navigate = useNavigate();
 
-  // Prevent background scroll when modal open
-  useEffect(() => {
-    document.body.style.overflow = show ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-      if (popupRef.current && !popupRef.current.closed) popupRef.current.close();
-    };
-  }, [show]);
-
-  // Handle OAuth response from popup
-  useEffect(() => {
-    function handleMessage(event) {
-      try {
-        if (event.origin !== window.location.origin) return;
-      } catch {
-        return;
-      }
-
-      const data = event.data;
-      if (!data || typeof data !== "object") return;
-
-      if (data.type === "oauth" && data.provider === "google") {
-        if (popupRef.current && !popupRef.current.closed) {
-          popupRef.current.close();
-          popupRef.current = null;
-        }
-        alert("Signed in with Google successfully.");
-        onClose();
-      }
-
-      if (data.type === "oauth_error") {
-        if (popupRef.current && !popupRef.current.closed) {
-          popupRef.current.close();
-          popupRef.current = null;
-        }
-        alert(data.message || "Google sign-in failed");
-      }
-    }
-
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [onClose]);
-
-  // When exit animation completes: dispatch event to open registration + close this modal
-  useEffect(() => {
-    if (!modalRef.current) return;
-    const node = modalRef.current;
-    function onAnimEnd(e) {
-      // only react when our exiting animation finished
-      if (!exiting) return;
-      // tell the app to open registration modal
-      window.dispatchEvent(new Event("open-registration"));
-      // close this modal (parent will hide it)
-      if (typeof onClose === "function") onClose();
-      // reset exiting state
-      setExiting(false);
-    }
-    node.addEventListener("animationend", onAnimEnd);
-    return () => node.removeEventListener("animationend", onAnimEnd);
-  }, [exiting, onClose]);
+  const API_BASE =
+    process.env.REACT_APP_API_BASE || "http://localhost:8080/api/auth";
 
   const validate = () => {
     const e = {};
-    if (!form.email.trim()) e.email = "Email is required";
-    else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Invalid email";
-    if (!form.password) e.password = "Password is required";
-    else if (form.password.length < 6) e.password = "Min 6 characters";
+    if (!form.email.trim()) e.email = "Email required";
+    if (!form.password) e.password = "Password required";
     return e;
   };
 
@@ -91,67 +27,86 @@ const Login = ({ show, onClose }) => {
     setErrors((s) => ({ ...s, [name]: undefined }));
   };
 
-  const handleSubmit = async (ev) => {
-    ev.preventDefault();
-    const e = validate();
-    setErrors(e);
-    if (Object.keys(e).length) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const errs = validate();
+    setErrors(errs);
+    if (Object.keys(errs).length) return;
 
     setSubmitting(true);
     try {
-      console.log("Login payload:", {
-        email: form.email.trim(),
-        password: form.password,
+      const res = await fetch(`${API_BASE}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
       });
 
-      // simulate login success
-      setTimeout(() => {
-        setSubmitting(false);
+      const data = await res.json();
+
+      if (res.ok && data.token) {
+        // Always expect "user" object in response
+        const user = data.user || {
+          id: data.id,
+          name: data.name,
+          role: data.role,
+          email: form.email,
+        };
+
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(user));
+
         alert("Login successful!");
         onClose();
-      }, 700);
-    } catch {
+
+        // Notify app components
+        window.dispatchEvent(new Event("userLogin"));
+
+        // ✅ Role-based navigation
+        if (user.role === "CUSTOMER") {
+          navigate("/dashboard");
+        } else if (user.role === "MECHANIC") {
+          navigate("/mechanic/dashboard");
+        } else if (user.role === "ADMIN") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/");
+        }
+      } else {
+        alert(data.error || "Invalid credentials");
+      }
+    } catch (err) {
+      console.error("Login failed:", err);
+      alert("Login failed. Please try again.");
+    } finally {
       setSubmitting(false);
-      setErrors({ submit: "Login failed. Try again." });
     }
   };
 
-  const openCenteredPopup = (url, name, width = 600, height = 700) => {
-    const left = window.screenX + (window.outerWidth - width) / 2;
-    const top = window.screenY + (window.outerHeight - height) / 2.5;
-    const features = `width=${width},height=${height},left=${left},top=${top},resizable,scrollbars=yes,status=1`;
-    const popup = window.open(url, name, features);
-    if (popup) popup.focus();
-    return popup;
-  };
-
   const handleGoogleSignIn = () => {
-    const base = process.env.REACT_APP_API_BASE || "";
-    const oauthUrl = `${base}/auth/google/authorize?popup=true`;
-    popupRef.current = openCenteredPopup(oauthUrl, "google_oauth_popup", 600, 700);
-    const checkClosed = setInterval(() => {
-      if (!popupRef.current || popupRef.current.closed) {
-        clearInterval(checkClosed);
-        popupRef.current = null;
-      }
-    }, 500);
+    const oauthUrl = `${API_BASE}/google/authorize?popup=true`;
+    popupRef.current = window.open(
+      oauthUrl,
+      "google_oauth_popup",
+      "width=600,height=700"
+    );
   };
 
-  // user clicked "Register" -> start exit animation to swap
-  const handleSwapToRegister = () => {
-    setExiting(true);
-  };
+  const handleSwapToRegister = () => setExiting(true);
 
   if (!show) return null;
 
   return (
-    <div className={`login-overlay ${exiting ? "overlay-exiting" : ""}`} role="dialog" aria-modal="true">
+    <div
+      className={`login-overlay ${exiting ? "overlay-exiting" : ""}`}
+      role="dialog"
+      aria-modal="true"
+    >
       <div className="login-backdrop" aria-hidden />
       <div
         className={`login-modal shadow ${exiting ? "exiting" : ""}`}
         ref={modalRef}
       >
-        <button className="login-close" onClick={onClose} aria-label="Close">
+        <button className="login-close" onClick={onClose}>
           &times;
         </button>
 
@@ -173,35 +128,41 @@ const Login = ({ show, onClose }) => {
               onChange={handleChange}
               placeholder="you@example.com"
               type="email"
-              autoComplete="email"
             />
-            {errors.email && <div className="invalid-feedback">{errors.email}</div>}
+            {errors.email && (
+              <div className="invalid-feedback">{errors.email}</div>
+            )}
           </div>
 
           <div className="mb-3 position-relative">
             <label className="form-label">Password</label>
-            <div className="password-wrapper">
-              <input
-                name="password"
-                className={`form-control ${errors.password ? "is-invalid" : ""}`}
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Password"
-                type={showPassword ? "text" : "password"}
-                autoComplete="current-password"
-              />
-            </div>
-            {errors.password && <div className="invalid-feedback">{errors.password}</div>}
+            <input
+              name="password"
+              className={`form-control ${errors.password ? "is-invalid" : ""}`}
+              value={form.password}
+              onChange={handleChange}
+              type="password"
+              placeholder="Password"
+            />
+            {errors.password && (
+              <div className="invalid-feedback">{errors.password}</div>
+            )}
           </div>
 
-          {errors.submit && <div className="alert alert-danger">{errors.submit}</div>}
-
-          <button type="submit" className="btn login-submit w-100" disabled={submitting}>
+          <button
+            type="submit"
+            className="btn login-submit w-100"
+            disabled={submitting}
+          >
             {submitting ? "Signing in…" : "Login"}
           </button>
 
           <div className="login-google-wrap mb-3 mt-2">
-            <button type="button" className="google-btn w-100" onClick={handleGoogleSignIn}>
+            <button
+              type="button"
+              className="google-btn w-100"
+              onClick={handleGoogleSignIn}
+            >
               <span className="google-icon">G</span>
               <span className="google-text">Continue with Google</span>
             </button>
@@ -209,7 +170,11 @@ const Login = ({ show, onClose }) => {
 
           <div className="login-footer-text mt-3 text-center">
             Don’t have an account?{" "}
-            <span className="link-like" onClick={handleSwapToRegister} style={{ cursor: "pointer" }}>
+            <span
+              className="link-like"
+              onClick={handleSwapToRegister}
+              style={{ cursor: "pointer" }}
+            >
               Register
             </span>
           </div>

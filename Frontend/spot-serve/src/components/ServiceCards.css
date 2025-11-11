@@ -1,0 +1,63 @@
+/* 🌟 Modern, elevated service card design */
+
+.service-card {
+  background: linear-gradient(145deg, #ffffff, #f9f9f9);
+  border-radius: 22px;
+  padding: 32px 25px;
+  text-align: center;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+  transition: all 0.35s ease;
+  transform: translateY(0);
+}
+
+.service-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+  background: linear-gradient(145deg, #ffffff, #f3f6f9);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.service-icon {
+  width: 85px;
+  height: 85px;
+  object-fit: contain;
+  margin: 0 auto 16px auto;
+  transition: transform 0.35s ease;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.service-card:hover .service-icon {
+  transform: scale(1.15);
+}
+
+.service-card h5 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  color: #222;
+  margin-bottom: 10px;
+}
+
+.service-card p {
+  color: #555;
+  font-size: 15px;
+  margin-bottom: 18px;
+  line-height: 1.4;
+}
+
+.btn-primary {
+  background: #007bff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 123, 255, 0.25);
+}
+
+.btn-primary:hover {
+  background: #0056b3;
+  box-shadow: 0 6px 14px rgba(0, 86, 179, 0.35);
+}

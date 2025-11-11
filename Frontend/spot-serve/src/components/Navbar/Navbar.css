@@ -1,61 +1,186 @@
-/* Navbar base tweaks */
-.navbar {
-  transition: background-color 0.3s ease;
+/* =========================
+   NAVBAR STYLING
+   ========================= */
+
+/* Navbar Wrapper */
+.navbar-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #0066ff, #0052cc);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 900;
+  height: 58px; /* Comfortable height */
+  display: flex;
+  align-items: center;
 }
 
+/* Inner Container */
+.navbar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 18px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* brand on left, links+buttons on right */
+}
+
+/* Brand - left side */
 .navbar-brand {
-  font-size: 1.35rem;
-  letter-spacing: 0.6px;
+  color: white !important;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+  text-decoration: none;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
 }
 
-/* Register button (large screens) */
-.nav-register-btn {
-  background: linear-gradient(90deg, #00bfff, #4facfe);
-  color: #042027;
-  border: none;
+/* Right side container (links + buttons) */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Navbar Links */
+.nav-link-custom {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.nav-link-custom:hover {
+  color: #dbe9ff;
+}
+
+/* =========================
+   BUTTONS
+   ========================= */
+.btn-login,
+.btn-register,
+.btn-nav,
+.btn-logout {
+  font-size: 13.5px;
   padding: 6px 12px;
-  border-radius: 22px;
-  box-shadow: 0 6px 18px rgba(79, 172, 254, 0.12);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+  line-height: 1.2;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
 }
 
-.nav-register-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 26px rgba(79, 172, 254, 0.16);
+/* Login Button */
+.btn-login {
+  border: 1px solid #fff;
+  background: transparent;
+  color: white;
 }
 
-/* Mobile nav: give the outline button full width */
-@media (max-width: 991px) {
-  .nav-register-btn { display: none; } /* hide desktop pill on mobile */
+.btn-login:hover {
+  background: white;
+  color: #0052cc;
 }
 
-/* Ensure navbar links spacing */
-.nav-link {
-  color: #f8f9fa !important;
-  margin-left: 0.6rem;
-}
-
-/* Accessibility: focus styles */
-.nav-register-btn:focus,
-.navbar .btn:focus,
-.navbar .nav-link:focus {
-  outline: 3px solid rgba(79,172,254,0.18);
-  outline-offset: 2px;
-}
-
-/* Login button (large screens) */
-.nav-login-btn {
-  background: linear-gradient(90deg, #4facfe, #00bfff);
-  color: #042027;
+/* Register Button */
+.btn-register {
+  background: white;
+  color: #0052cc;
   border: none;
-  padding: 6px 12px;
-  border-radius: 22px;
-  box-shadow: 0 6px 18px rgba(79, 172, 254, 0.12);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
-.nav-login-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 26px rgba(79, 172, 254, 0.16);
+.btn-register:hover {
+  background: #e0e7ff;
 }
 
+/* Navigation Buttons */
+.btn-nav {
+  border: 1px solid #e0e7ff;
+  background: transparent;
+  color: white;
+}
+
+.btn-nav:hover {
+  background: white;
+  color: #0052cc;
+}
+
+/* Logout Button */
+.btn-logout {
+  background: #dc3545;
+  color: white;
+  border: none;
+}
+
+.btn-logout:hover {
+  background: #b02a37;
+}
+
+/* =========================
+   RESPONSIVE DESIGN
+   ========================= */
+@media (max-width: 992px) {
+  .navbar-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    height: auto;
+    padding: 8px 16px;
+  }
+
+  .nav-right {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .btn-login,
+  .btn-register,
+  .btn-nav,
+  .btn-logout {
+    font-size: 12.5px;
+    padding: 4px 8px;
+    height: 32px;
+  }
+
+  .nav-link-custom {
+    font-size: 13px;
+  }
+
+  .navbar-brand {
+    font-size: 17px;
+  }
+}
+
+/* =========================
+   CONTENT SPACING & Z-INDEX
+   ========================= */
+
+/* Prevent content overlap below navbar */
+body {
+  margin-top: 58px; /* equal to navbar height */
+}
+
+/* Ensure modals appear above navbar */
+.modal-backdrop {
+  z-index: 1050 !important;
+}
+
+.modal {
+  z-index: 1060 !important;
+}

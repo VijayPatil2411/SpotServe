@@ -1,117 +1,138 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Registration from "../../pages/Registration/Registration";
 import Login from "../../pages/Login/Login";
+import AddVehicleModal from "../../components/AddVehicleModal";
 
 const Navbar = () => {
   const [showRegistration, setShowRegistration] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [showAddVehicle, setShowAddVehicle] = useState(false);
 
+  const [user, setUser] = useState(() => {
+    const stored = localStorage.getItem("user");
+    return stored ? JSON.parse(stored) : null;
+  });
+
+  const navigate = useNavigate();
+
+  // ✅ Keep modals working (register/login)
   useEffect(() => {
     const openRegistration = () => setShowRegistration(true);
+    const openLogin = () => setShowLogin(true);
     window.addEventListener("open-registration", openRegistration);
-    return () =>
+    window.addEventListener("open-login", openLogin);
+    return () => {
       window.removeEventListener("open-registration", openRegistration);
+      window.removeEventListener("open-login", openLogin);
+    };
   }, []);
 
+  // ✅ Sync user state with login/logout events
   useEffect(() => {
-    const openLogin = () => setShowLogin(true);
-    window.addEventListener("open-login", openLogin);
-    return () => window.removeEventListener("open-login", openLogin);
+    const handleLogin = () => {
+      const stored = localStorage.getItem("user");
+      setUser(stored ? JSON.parse(stored) : null);
+    };
+    const handleLogout = () => setUser(null);
+    window.addEventListener("userLogin", handleLogin);
+    window.addEventListener("userLogout", handleLogout);
+    return () => {
+      window.removeEventListener("userLogin", handleLogin);
+      window.removeEventListener("userLogout", handleLogout);
+    };
   }, []);
+
+  // ✅ Logout logic
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    window.dispatchEvent(new Event("userLogout"));
+    navigate("/");
+  };
+
+  // ✅ Navigation handlers (used per role)
+  const goToDashboard = () => {
+    if (user?.role === "MECHANIC") navigate("/mechanic/dashboard");
+    else if (user?.role === "ADMIN") navigate("/admin/dashboard");
+    else navigate("/dashboard");
+  };
+
+  const goToCreateRequest = () => navigate("/dashboard");
+  const goToAddVehicle = () => setShowAddVehicle(true);
+  const goToMyRequests = () => navigate("/my-requests");
+  const goToProfile = () => navigate("/profile");
 
   return (
     <>
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
-        <div className="container">
-          <Link className="navbar-brand fw-bold" to="/">
+      <header className="navbar-wrapper shadow-sm">
+        <div className="navbar-container container d-flex align-items-center justify-content-between">
+          <Link to="/" className="navbar-brand fw-bold fs-5 text-dark m-0">
             SpotServe
           </Link>
 
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarNav"
-            aria-controls="navbarNav"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
+          <nav className="nav-items d-flex align-items-center gap-3">
+            {/* 🔹 Common links visible to all */}
+            <Link className="nav-link-custom" to="/">Home</Link>
+            <Link className="nav-link-custom" to="/services">Services</Link>
+            <Link className="nav-link-custom" to="/our-story">Our Story</Link>
+            <Link className="nav-link-custom" to="/about-us">About Us</Link>
+            <Link className="nav-link-custom" to="/contact-us">Contact Us</Link>
+            <Link className="nav-link-custom" to="/terms-privacy">Terms & Privacy</Link>
 
-          <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav ms-auto align-items-lg-center">
-              <li className="nav-item">
-                <Link className="nav-link" to="/">Home</Link>
-              </li>
-
-              <li className="nav-item">
-                <Link className="nav-link" to="/services">Services</Link>
-              </li>
-
-              <li className="nav-item">
-                <Link className="nav-link" to="/our-story">Our Story</Link>
-              </li>
-
-              <li className="nav-item">
-                <Link className="nav-link" to="/about-us">About Us</Link>
-              </li>
-
-              <li className="nav-item">
-                <Link className="nav-link" to="/contact-us">Contact Us</Link>
-              </li>
-
-              <li className="nav-item">
-                <Link className="nav-link" to="/terms-privacy">Terms & Privacy</Link>
-              </li>
-
-              {/* Mobile buttons */}
-              <li className="nav-item d-lg-none mt-2">
-                <button
-                  className="btn btn-sm btn-outline-light w-100 mb-1"
-                  onClick={() => setShowLogin(true)}
-                >
+            {/* 🔹 Guest buttons */}
+            {!user ? (
+              <>
+                <button className="btn-login" onClick={() => setShowLogin(true)}>
                   Login
                 </button>
-                <button
-                  className="btn btn-sm btn-outline-light w-100"
-                  onClick={() => setShowRegistration(true)}
-                >
+                <button className="btn-register" onClick={() => setShowRegistration(true)}>
                   Register
                 </button>
-              </li>
+              </>
+            ) : (
+              <>
+                {/* 🔹 Role-based navigation */}
+                {user.role === "CUSTOMER" && (
+                  <>
+                    <button className="btn-nav" onClick={goToDashboard}>Dashboard</button>
+                    <button className="btn-nav" onClick={goToCreateRequest}>Create Request</button>
+                    <button className="btn-nav" onClick={goToAddVehicle}>Add Vehicle</button>
+                    <button className="btn-nav" onClick={goToMyRequests}>My Requests</button>
+                    <button className="btn-nav" onClick={goToProfile}>Profile</button>
+                  </>
+                )}
 
-              {/* Desktop buttons */}
-              <li className="nav-item d-none d-lg-flex ms-2">
-                <button
-                  className="btn nav-login-btn btn-sm me-2"
-                  onClick={() => setShowLogin(true)}
-                >
-                  Login
-                </button>
-                <button
-                  className="btn nav-register-btn btn-sm"
-                  onClick={() => setShowRegistration(true)}
-                >
-                  Register
-                </button>
-              </li>
-            </ul>
-          </div>
+                {user.role === "MECHANIC" && (
+                  <>
+                    <button className="btn-nav" onClick={goToDashboard}>Dashboard</button>
+                    <button className="btn-nav" onClick={goToProfile}>Profile</button>
+                  </>
+                )}
+
+                {user.role === "ADMIN" && (
+                  <>
+                    <button className="btn-nav" onClick={goToDashboard}>Admin Dashboard</button>
+                  </>
+                )}
+
+                <button className="btn-logout" onClick={handleLogout}>Logout</button>
+              </>
+            )}
+          </nav>
         </div>
-      </nav>
+      </header>
 
-      {/* Modals */}
-      <Registration
-        show={showRegistration}
-        onClose={() => setShowRegistration(false)}
-      />
-      <Login
-        show={showLogin}
-        onClose={() => setShowLogin(false)}
+      {/* 🔹 Popups / Modals */}
+      <Registration show={showRegistration} onClose={() => setShowRegistration(false)} />
+      <Login show={showLogin} onClose={() => setShowLogin(false)} />
+      <AddVehicleModal
+        show={showAddVehicle}
+        onClose={() => setShowAddVehicle(false)}
+        onVehicleAdded={() => window.location.reload()}
       />
     </>
   );

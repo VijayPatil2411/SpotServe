@@ -1,0 +1,91 @@
+.mechanic-dashboard {
+  min-height: 80vh;
+  padding-bottom: 60px;
+}
+
+.tab-buttons {
+  gap: 15px;
+}
+
+.tab-btn {
+  background-color: white;
+  border: 2px solid #007bff;
+  padding: 10px 25px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  background-color: #007bff;
+  color: white;
+  transform: scale(1.05);
+}
+
+.tab-btn:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.job-card {
+  background-color: #fff;
+  border-radius: 12px;
+  transition: 0.3s ease-in-out;
+}
+
+.job-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.badge {
+  font-size: 0.85rem;
+  padding: 0.45em 0.65em;
+  border-radius: 6px;
+}
+
+/* ===== OTP Input Box ===== */
+.otp-box {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.otp-box input {
+  border-radius: 6px;
+  border: 1px solid #007bff;
+  outline: none;
+  padding: 8px;
+}
+
+/* ===== Map Modal Styling ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  width: 400px;
+  max-width: 90%;
+}
+
+.map-card iframe {
+  border-radius: 10px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
