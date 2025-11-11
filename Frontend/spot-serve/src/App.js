@@ -18,14 +18,16 @@ import MyRequests from "./pages/Customer/MyRequests";
 import CustomerProfile from "./pages/Customer/CustomerProfile";
 
 // 🔹 Mechanic Pages
-import MechanicDashboard from "./pages/Mechanic/MechanicDashboard"; // ✅
+import MechanicDashboard from "./pages/Mechanic/MechanicDashboard";
+import MechanicProfile from "./pages/Mechanic/MechanicProfile"; // ✅ Added Mechanic Profile
 
 const App = () => {
   const user = JSON.parse(localStorage.getItem("user"));
 
   const ProtectedRoute = ({ children, allowedRoles }) => {
     if (!user) return <Navigate to="/" replace />;
-    if (allowedRoles && !allowedRoles.includes(user.role)) return <Navigate to="/" replace />;
+    if (allowedRoles && !allowedRoles.includes(user.role))
+      return <Navigate to="/" replace />;
     return children;
   };
 
@@ -81,6 +83,14 @@ const App = () => {
           element={
             <ProtectedRoute allowedRoles={["MECHANIC"]}>
               <MechanicDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mechanic/profile"
+          element={
+            <ProtectedRoute allowedRoles={["MECHANIC"]}>
+              <MechanicProfile />
             </ProtectedRoute>
           }
         />

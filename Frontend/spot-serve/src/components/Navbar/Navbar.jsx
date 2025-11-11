@@ -18,7 +18,6 @@ const Navbar = () => {
 
   const navigate = useNavigate();
 
-  // ✅ Keep modals working (register/login)
   useEffect(() => {
     const openRegistration = () => setShowRegistration(true);
     const openLogin = () => setShowLogin(true);
@@ -30,7 +29,6 @@ const Navbar = () => {
     };
   }, []);
 
-  // ✅ Sync user state with login/logout events
   useEffect(() => {
     const handleLogin = () => {
       const stored = localStorage.getItem("user");
@@ -45,7 +43,6 @@ const Navbar = () => {
     };
   }, []);
 
-  // ✅ Logout logic
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -54,7 +51,6 @@ const Navbar = () => {
     navigate("/");
   };
 
-  // ✅ Navigation handlers (used per role)
   const goToDashboard = () => {
     if (user?.role === "MECHANIC") navigate("/mechanic/dashboard");
     else if (user?.role === "ADMIN") navigate("/admin/dashboard");
@@ -64,7 +60,10 @@ const Navbar = () => {
   const goToCreateRequest = () => navigate("/dashboard");
   const goToAddVehicle = () => setShowAddVehicle(true);
   const goToMyRequests = () => navigate("/my-requests");
-  const goToProfile = () => navigate("/profile");
+  const goToProfile = () => {
+    if (user?.role === "MECHANIC") navigate("/mechanic/profile");
+    else navigate("/profile");
+  };
 
   return (
     <>
@@ -75,15 +74,14 @@ const Navbar = () => {
           </Link>
 
           <nav className="nav-items d-flex align-items-center gap-3">
-            {/* 🔹 Common links visible to all */}
+            {/* 🔹 Common Links */}
             <Link className="nav-link-custom" to="/">Home</Link>
-            <Link className="nav-link-custom" to="/services">Services</Link>
             <Link className="nav-link-custom" to="/our-story">Our Story</Link>
             <Link className="nav-link-custom" to="/about-us">About Us</Link>
             <Link className="nav-link-custom" to="/contact-us">Contact Us</Link>
             <Link className="nav-link-custom" to="/terms-privacy">Terms & Privacy</Link>
 
-            {/* 🔹 Guest buttons */}
+            {/* 🔹 Guest Buttons */}
             {!user ? (
               <>
                 <button className="btn-login" onClick={() => setShowLogin(true)}>
@@ -95,7 +93,7 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                {/* 🔹 Role-based navigation */}
+                {/* 🔹 Role-Based Options */}
                 {user.role === "CUSTOMER" && (
                   <>
                     <button className="btn-nav" onClick={goToDashboard}>Dashboard</button>
@@ -109,7 +107,7 @@ const Navbar = () => {
                 {user.role === "MECHANIC" && (
                   <>
                     <button className="btn-nav" onClick={goToDashboard}>Dashboard</button>
-                    <button className="btn-nav" onClick={goToProfile}>Profile</button>
+                    <button className="btn-nav" onClick={goToProfile}>Profile</button> {/* ✅ Added Mechanic Profile */}
                   </>
                 )}
 
@@ -126,7 +124,7 @@ const Navbar = () => {
         </div>
       </header>
 
-      {/* 🔹 Popups / Modals */}
+      {/* 🔹 Modals */}
       <Registration show={showRegistration} onClose={() => setShowRegistration(false)} />
       <Login show={showLogin} onClose={() => setShowLogin(false)} />
       <AddVehicleModal
