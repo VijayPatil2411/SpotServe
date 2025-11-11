@@ -19,11 +19,15 @@ import CustomerProfile from "./pages/Customer/CustomerProfile";
 
 // 🔹 Mechanic Pages
 import MechanicDashboard from "./pages/Mechanic/MechanicDashboard";
-import MechanicProfile from "./pages/Mechanic/MechanicProfile"; // ✅ Added Mechanic Profile
+import MechanicProfile from "./pages/Mechanic/MechanicProfile";
+
+// 🔹 Admin Pages
+import AdminDashboard from "./pages/Admin/AdminDashboard"; // ✅ Added Admin Dashboard
 
 const App = () => {
   const user = JSON.parse(localStorage.getItem("user"));
 
+  // ✅ Reusable ProtectedRoute wrapper
   const ProtectedRoute = ({ children, allowedRoles }) => {
     if (!user) return <Navigate to="/" replace />;
     if (allowedRoles && !allowedRoles.includes(user.role))
@@ -35,7 +39,7 @@ const App = () => {
     <Router>
       <Navbar />
       <Routes>
-        {/* Public routes */}
+        {/* 🔹 Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/emergency-help" element={<EmergencyHelp />} />
         <Route path="/our-story" element={<OurStory />} />
@@ -43,7 +47,7 @@ const App = () => {
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/terms-privacy" element={<TermsPrivacy />} />
 
-        {/* Customer routes */}
+        {/* 🔹 Customer Routes */}
         <Route
           path="/dashboard"
           element={
@@ -77,7 +81,7 @@ const App = () => {
           }
         />
 
-        {/* Mechanic routes */}
+        {/* 🔹 Mechanic Routes */}
         <Route
           path="/mechanic/dashboard"
           element={
@@ -91,6 +95,16 @@ const App = () => {
           element={
             <ProtectedRoute allowedRoles={["MECHANIC"]}>
               <MechanicProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 🔹 Admin Routes */}
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />

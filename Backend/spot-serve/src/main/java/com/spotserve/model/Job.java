@@ -45,56 +45,145 @@ public class Job {
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
 
+    // ✅ Relation to ServiceEntity for reference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id", insertable = false, updatable = false)
     private ServiceEntity service;
 
+    // ✅ Transient (non-persistent) fields for display
     @Transient
     private String serviceName;
 
-    // ===== Getters & Setters =====
+    @Transient
+    private String customerName;
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    @Transient
+    private String mechanicName;
 
-    public Long getCustomerId() { return customerId; }
-    public void setCustomerId(Long customerId) { this.customerId = customerId; }
+    // ==============================
+    // ✅ Constructors
+    // ==============================
+    public Job() {}
 
-    public Long getServiceId() { return serviceId; }
-    public void setServiceId(Long serviceId) { this.serviceId = serviceId; }
+    // ==============================
+    // ✅ Getters & Setters
+    // ==============================
 
-    public Long getVehicleId() { return vehicleId; }
-    public void setVehicleId(Long vehicleId) { this.vehicleId = vehicleId; }
+    public Long getId() {
+        return id;
+    }
 
-    public Long getMechanicId() { return mechanicId; }
-    public void setMechanicId(Long mechanicId) { this.mechanicId = mechanicId; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public Double getPickupLat() { return pickupLat; }
-    public void setPickupLat(Double pickupLat) { this.pickupLat = pickupLat; }
+    public Long getCustomerId() {
+        return customerId;
+    }
 
-    public Double getPickupLng() { return pickupLng; }
-    public void setPickupLng(Double pickupLng) { this.pickupLng = pickupLng; }
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
+    }
 
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
+    public Long getServiceId() {
+        return serviceId;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public void setServiceId(Long serviceId) {
+        this.serviceId = serviceId;
+    }
 
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public Long getVehicleId() {
+        return vehicleId;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public void setVehicleId(Long vehicleId) {
+        this.vehicleId = vehicleId;
+    }
 
-    public String getOtpCode() { return otpCode; }
-    public void setOtpCode(String otpCode) { this.otpCode = otpCode; }
+    public Long getMechanicId() {
+        return mechanicId;
+    }
 
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public void setMechanicId(Long mechanicId) {
+        this.mechanicId = mechanicId;
+    }
 
-    public ServiceEntity getService() { return service; }
-    public void setService(ServiceEntity service) { this.service = service; }
+    public Double getPickupLat() {
+        return pickupLat;
+    }
+
+    public void setPickupLat(Double pickupLat) {
+        this.pickupLat = pickupLat;
+    }
+
+    public Double getPickupLng() {
+        return pickupLng;
+    }
+
+    public void setPickupLng(Double pickupLng) {
+        this.pickupLng = pickupLng;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getOtpCode() {
+        return otpCode;
+    }
+
+    public void setOtpCode(String otpCode) {
+        this.otpCode = otpCode;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public ServiceEntity getService() {
+        return service;
+    }
+
+    public void setService(ServiceEntity service) {
+        this.service = service;
+    }
+
+    // ==============================
+    // ✅ Display Helper Fields
+    // ==============================
 
     public String getServiceName() {
         if (serviceName != null && !serviceName.isBlank()) return serviceName;
@@ -103,5 +192,23 @@ public class Job {
                 : "Unknown Service";
     }
 
-    public void setServiceName(String serviceName) { this.serviceName = serviceName; }
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public String getMechanicName() {
+        return mechanicName;
+    }
+
+    public void setMechanicName(String mechanicName) {
+        this.mechanicName = mechanicName;
+    }
 }
