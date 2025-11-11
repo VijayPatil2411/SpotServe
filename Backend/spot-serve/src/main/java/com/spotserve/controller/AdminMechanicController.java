@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -49,6 +50,8 @@ public class AdminMechanicController {
                     .filter(job -> "Ongoing".equalsIgnoreCase(job.getStatus()))
                     .count();
 
+            long total = completed + ongoing;
+
             Map<String, Object> data = new HashMap<>();
             data.put("id", mechanic.getId());
             data.put("name", mechanic.getName());
@@ -56,8 +59,11 @@ public class AdminMechanicController {
             data.put("phone", mechanic.getPhone());
             data.put("shopName", mechanic.getShopName());
             data.put("address", mechanic.getAddress());
+            data.put("latitude", mechanic.getLatitude());
+            data.put("longitude", mechanic.getLongitude());
             data.put("completedJobs", completed);
             data.put("ongoingJobs", ongoing);
+            data.put("totalJobs", total);
             mechanicData.add(data);
         }
 
@@ -76,8 +82,13 @@ public class AdminMechanicController {
             return ResponseEntity.badRequest().body(Map.of("error", "Email already exists"));
         }
 
-        // Set default role
+        // Set default role and timestamp
         newMechanic.setRole("MECHANIC");
+        newMechanic.setCreatedAt(Instant.now());
+
+        // ✅ Handle latitude & longitude safely
+        if (newMechanic.getLatitude() == null) newMechanic.setLatitude(0.0);
+        if (newMechanic.getLongitude() == null) newMechanic.setLongitude(0.0);
 
         // Encrypt password
         newMechanic.setPassword(passwordEncoder.encode(newMechanic.getPassword()));
