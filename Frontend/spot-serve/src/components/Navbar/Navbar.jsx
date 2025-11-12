@@ -1,3 +1,4 @@
+// Navbar.jsx
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Navbar.css";
@@ -10,7 +11,7 @@ const Navbar = () => {
   const [showRegistration, setShowRegistration] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showAddVehicle, setShowAddVehicle] = useState(false);
-
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem("user");
     return stored ? JSON.parse(stored) : null;
@@ -18,132 +19,211 @@ const Navbar = () => {
 
   const navigate = useNavigate();
 
-  // ✅ Modal listeners (Register / Login)
   useEffect(() => {
+    // Event handler for opening registration
     const openRegistration = () => setShowRegistration(true);
     const openLogin = () => setShowLogin(true);
+
+    // ✅ FIXED: Properly sync user state on login
+    const handleUserLogin = (e) => {
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          const userData = JSON.parse(stored);
+          setUser(userData);
+          console.log("User logged in:", userData);
+        }
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    };
+
+    // ✅ FIXED: Properly sync user state on logout
+    const handleUserLogout = (e) => {
+      setUser(null);
+      setIsMenuOpen(false);
+      console.log("User logged out");
+    };
+
     window.addEventListener("open-registration", openRegistration);
     window.addEventListener("open-login", openLogin);
+    window.addEventListener("userLogin", handleUserLogin);
+    window.addEventListener("userLogout", handleUserLogout);
+
     return () => {
       window.removeEventListener("open-registration", openRegistration);
       window.removeEventListener("open-login", openLogin);
+      window.removeEventListener("userLogin", handleUserLogin);
+      window.removeEventListener("userLogout", handleUserLogout);
     };
   }, []);
 
-  // ✅ Keep user in sync after login/logout
+  // ✅ ADDED: Watch for localStorage changes (for cross-tab updates)
   useEffect(() => {
-    const handleLogin = () => {
-      const stored = localStorage.getItem("user");
-      setUser(stored ? JSON.parse(stored) : null);
+    const handleStorageChange = (e) => {
+      if (e.key === "user" || e.key === "token") {
+        const stored = localStorage.getItem("user");
+        setUser(stored ? JSON.parse(stored) : null);
+      }
     };
-    const handleLogout = () => setUser(null);
-    window.addEventListener("userLogin", handleLogin);
-    window.addEventListener("userLogout", handleLogout);
-    return () => {
-      window.removeEventListener("userLogin", handleLogin);
-      window.removeEventListener("userLogout", handleLogout);
-    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // ✅ Logout logic
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
+    setIsMenuOpen(false);
     window.dispatchEvent(new Event("userLogout"));
     navigate("/");
   };
 
-  // ✅ Role-based navigation
-  const goToDashboard = () => {
-    if (user?.role === "MECHANIC") navigate("/mechanic/dashboard");
-    else if (user?.role === "ADMIN") navigate("/admin/dashboard");
-    else navigate("/dashboard");
+  const navActions = {
+    dashboard: () => {
+      if (user?.role === "MECHANIC") navigate("/mechanic/dashboard");
+      else if (user?.role === "ADMIN") navigate("/admin/dashboard");
+      else navigate("/dashboard");
+    },
+    profile: () => user?.role === "MECHANIC" ? navigate("/mechanic/profile") : navigate("/profile"),
+    createRequest: () => navigate("/dashboard"),
+    addVehicle: () => setShowAddVehicle(true),
+    myRequests: () => navigate("/my-requests"),
+    mechanics: () => navigate("/admin/mechanics"),
+    revenue: () => navigate("/admin/revenue"),
+    reports: () => navigate("/admin/reports"),
   };
 
-  const goToCreateRequest = () => navigate("/dashboard");
-  const goToAddVehicle = () => setShowAddVehicle(true);
-  const goToMyRequests = () => navigate("/my-requests");
-
-  const goToProfile = () => {
-    if (user?.role === "MECHANIC") navigate("/mechanic/profile");
-    else navigate("/profile");
+  const roleButtons = {
+    CUSTOMER: [
+      { label: "Dashboard", action: navActions.dashboard },
+      { label: "Create Request", action: navActions.createRequest },
+      { label: "Add Vehicle", action: navActions.addVehicle },
+      { label: "My Requests", action: navActions.myRequests },
+      { label: "Profile", action: navActions.profile },
+    ],
+    MECHANIC: [
+      { label: "Dashboard", action: navActions.dashboard },
+      { label: "Profile", action: navActions.profile },
+    ],
+    ADMIN: [
+      { label: "Dashboard", action: navActions.dashboard },
+      { label: "Mechanics", action: navActions.mechanics },
+      { label: "Revenue", action: navActions.revenue },
+    ],
   };
-
-  // ✅ Admin-specific navigation
-  const goToAdminDashboard = () => navigate("/admin/dashboard");
-  const goToAdminMechanics = () => navigate("/admin/mechanics");
-  const goToAdminRevenue = () => navigate("/admin/revenue");
-  const goToAdminReports = () => navigate("/admin/reports");
 
   return (
     <>
-      <header className="navbar-wrapper shadow-sm">
-        <div className="navbar-container container d-flex align-items-center justify-content-between">
-          <Link to="/" className="navbar-brand fw-bold fs-5 text-dark m-0">
-            SpotServe
-          </Link>
+      <nav className="navbar-modern">
+        <div className="container-fluid px-3 px-lg-4">
+          <div className="d-flex align-items-center justify-content-between w-100">
+            {/* Brand */}
+            <Link to="/" className="brand-logo">
+              <span className="brand-icon">🔧</span>
+              <span className="brand-text">SpotServe</span>
+            </Link>
 
-          <nav className="nav-items d-flex align-items-center gap-3">
-            {/* 🔹 Common Links */}
-            <Link className="nav-link-custom" to="/">Home</Link>
-            <Link className="nav-link-custom" to="/our-story">Our Story</Link>
-            <Link className="nav-link-custom" to="/about-us">About Us</Link>
-            <Link className="nav-link-custom" to="/contact-us">Contact Us</Link>
-            <Link className="nav-link-custom" to="/terms-privacy">Terms & Privacy</Link>
+            {/* Hamburger Menu */}
+            <button
+              className="navbar-toggler d-lg-none"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle navigation"
+            >
+              <span className={`hamburger ${isMenuOpen ? "active" : ""}`}>
+                <span></span>
+                <span></span>
+                <span></span>
+              </span>
+            </button>
 
-            {/* 🔹 Guest buttons */}
-            {!user ? (
-              <>
-                <button className="btn-login" onClick={() => setShowLogin(true)}>
-                  Login
-                </button>
-                <button className="btn-register" onClick={() => setShowRegistration(true)}>
-                  Register
-                </button>
-              </>
-            ) : (
-              <>
-                {/* 🔹 CUSTOMER buttons */}
-                {user.role === "CUSTOMER" && (
+            {/* Desktop Navigation */}
+            <div className="nav-desktop d-none d-lg-flex align-items-center gap-2">
+              {/* Common Links */}
+              <div className="nav-links d-flex align-items-center gap-3">
+                <Link className="nav-link-modern" to="/">Home</Link>
+                <Link className="nav-link-modern" to="/our-story">Our Story</Link>
+                <Link className="nav-link-modern" to="/about-us">About Us</Link>
+                <Link className="nav-link-modern" to="/contact-us">Contact</Link>
+                <Link className="nav-link-modern" to="/terms-privacy">Terms</Link>
+              </div>
+
+              {/* Auth / User Actions */}
+              <div className="nav-actions d-flex align-items-center gap-1">
+                {!user ? (
                   <>
-                    <button className="btn-nav" onClick={goToDashboard}>Dashboard</button>
-                    <button className="btn-nav" onClick={goToCreateRequest}>Create Request</button>
-                    <button className="btn-nav" onClick={goToAddVehicle}>Add Vehicle</button>
-                    <button className="btn-nav" onClick={goToMyRequests}>My Requests</button>
-                    <button className="btn-nav" onClick={goToProfile}>Profile</button>
+                    <button className="btn-modern btn-modern-outline" onClick={() => setShowLogin(true)}>
+                      Login
+                    </button>
+                    <button className="btn-modern btn-modern-primary" onClick={() => setShowRegistration(true)}>
+                      Register
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {roleButtons[user.role]?.map((btn, idx) => (
+                      <button key={idx} className="btn-modern btn-modern-sm" onClick={btn.action}>
+                        {btn.label}
+                      </button>
+                    ))}
+                    <div className="user-greeting">
+                      Hello, <span className="user-name">{user.name || user.username || "User"}</span>
+                    </div>
+                    <button className="btn-modern btn-modern-danger btn-modern-sm" onClick={handleLogout}>
+                      Logout
+                    </button>
                   </>
                 )}
+              </div>
+            </div>
+          </div>
 
-                {/* 🔹 MECHANIC buttons */}
-                {user.role === "MECHANIC" && (
+          {/* Mobile Menu */}
+          <div className={`nav-mobile d-lg-none ${isMenuOpen ? "show" : ""}`}>
+            <div className="mobile-menu-content">
+              {/* Common Links */}
+              <div className="mobile-section">
+                <Link className="nav-link-mobile" to="/" onClick={() => setIsMenuOpen(false)}>Home</Link>
+                <Link className="nav-link-mobile" to="/our-story" onClick={() => setIsMenuOpen(false)}>Our Story</Link>
+                <Link className="nav-link-mobile" to="/about-us" onClick={() => setIsMenuOpen(false)}>About Us</Link>
+                <Link className="nav-link-mobile" to="/contact-us" onClick={() => setIsMenuOpen(false)}>Contact</Link>
+                <Link className="nav-link-mobile" to="/terms-privacy" onClick={() => setIsMenuOpen(false)}>Terms</Link>
+              </div>
+
+              {/* Auth / User Actions */}
+              <div className="mobile-section mobile-actions">
+                {!user ? (
                   <>
-                    <button className="btn-nav" onClick={goToDashboard}>Dashboard</button>
-                    <button className="btn-nav" onClick={goToProfile}>Profile</button>
+                    <button className="btn-mobile btn-mobile-outline" onClick={() => { setShowLogin(true); setIsMenuOpen(false); }}>
+                      Login
+                    </button>
+                    <button className="btn-mobile btn-mobile-primary" onClick={() => { setShowRegistration(true); setIsMenuOpen(false); }}>
+                      Register
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="user-greeting-mobile">
+                      Hello, <span className="user-name">{user.name || user.username || "User"}</span>!
+                    </div>
+                    {roleButtons[user.role]?.map((btn, idx) => (
+                      <button key={idx} className="btn-mobile btn-mobile-outline" onClick={() => { btn.action(); setIsMenuOpen(false); }}>
+                        {btn.label}
+                      </button>
+                    ))}
+                    <button className="btn-mobile btn-mobile-danger" onClick={() => { handleLogout(); setIsMenuOpen(false); }}>
+                      Logout
+                    </button>
                   </>
                 )}
-
-                {/* 🔹 ADMIN buttons */}
-                {user.role === "ADMIN" && (
-                  <>
-                    <button className="btn-nav" onClick={goToAdminDashboard}>Dashboard</button>
-                    <button className="btn-nav" onClick={goToAdminMechanics}>Mechanics</button>
-                    <button className="btn-nav" onClick={goToAdminRevenue}>Revenue</button>
-                    <button className="btn-nav" onClick={goToAdminReports}>Reports</button>
-                  </>
-                )}
-
-                {/* 🔹 Common logout */}
-                <button className="btn-logout" onClick={handleLogout}>
-                  Logout
-                </button>
-              </>
-            )}
-          </nav>
+              </div>
+            </div>
+          </div>
         </div>
-      </header>
+      </nav>
 
-      {/* 🔹 Modals */}
+      {/* Modals */}
       <Registration show={showRegistration} onClose={() => setShowRegistration(false)} />
       <Login show={showLogin} onClose={() => setShowLogin(false)} />
       <AddVehicleModal
