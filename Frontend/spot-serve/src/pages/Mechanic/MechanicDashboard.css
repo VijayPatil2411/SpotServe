@@ -89,3 +89,26 @@
   justify-content: flex-end;
   margin-top: 15px;
 }
+
+.payment-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 25px;
+  width: 420px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.25s ease;
+}
+
+.payment-card input,
+.payment-card textarea {
+  font-size: 0.95rem;
+}
+
+.payment-card button {
+  transition: all 0.2s ease;
+}
+
+.payment-card button:hover {
+  transform: translateY(-2px);
+}
+

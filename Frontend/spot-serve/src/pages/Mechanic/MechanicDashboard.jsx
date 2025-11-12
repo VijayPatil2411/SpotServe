@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./MechanicDashboard.css";
 
-/* ===============================
-   Map Modal Component
-================================ */
 const MapModal = ({ show, onClose, lat, lng }) => {
   if (!show) return null;
 
@@ -42,10 +39,12 @@ const MapModal = ({ show, onClose, lat, lng }) => {
 };
 
 /* ===============================
-   Main Mechanic Dashboard
+   Mechanic Dashboard
 ================================ */
 const API_BASE =
   process.env.REACT_APP_API_BASE || "http://localhost:8080/api/customer/jobs";
+const PAYMENT_API =
+  process.env.REACT_APP_API_PAYMENT || "http://localhost:8080/api/payments";
 
 const MechanicDashboard = () => {
   const [jobs, setJobs] = useState([]);
@@ -53,6 +52,9 @@ const MechanicDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [mapJob, setMapJob] = useState(null);
   const [otpInput, setOtpInput] = useState("");
+  const [paymentJob, setPaymentJob] = useState(null);
+  const [extraAmount, setExtraAmount] = useState("");
+  const [description, setDescription] = useState("");
 
   useEffect(() => {
     fetchJobs();
@@ -81,7 +83,6 @@ const MechanicDashboard = () => {
     }
   };
 
-  // ✅ Accept Job
   const handleAccept = async (jobId) => {
     const token = localStorage.getItem("token");
     try {
@@ -102,7 +103,6 @@ const MechanicDashboard = () => {
     }
   };
 
-  // ✅ Start Job → Generate OTP (only once)
   const handleStartJob = async (jobId) => {
     const token = localStorage.getItem("token");
     try {
@@ -124,7 +124,6 @@ const MechanicDashboard = () => {
     }
   };
 
-  // ✅ Verify OTP
   const handleVerifyOtp = async (jobId) => {
     const token = localStorage.getItem("token");
     if (!otpInput.trim()) {
@@ -154,24 +153,46 @@ const MechanicDashboard = () => {
     }
   };
 
-  // ✅ Complete Job
-  const handleCompleteJob = async (jobId) => {
+  // ✅ Open payment modal instead of alert
+  const handleCompleteJob = (job) => {
+    setPaymentJob(job);
+    setExtraAmount("");
+    setDescription("");
+  };
+
+  // ✅ Send link to customer (not open Stripe)
+  const handleSendPaymentLink = async () => {
+    if (!paymentJob) return;
     const token = localStorage.getItem("token");
+
+    const payload = {
+      jobId: paymentJob.id,
+      baseAmount: paymentJob.baseAmount || 500,
+      extraAmount: extraAmount ? parseFloat(extraAmount) : 0,
+      description: description || `Payment for job #${paymentJob.id}`,
+    };
+
     try {
-      const res = await fetch(`${API_BASE}/${jobId}/complete`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await fetch(`${PAYMENT_API}/create-checkout-session`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
       });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        alert("🎉 Job completed successfully!");
+
+      const data = await res.json();
+      if (res.ok && data.checkoutUrl) {
+        alert("✅ Payment link sent to customer! Waiting for confirmation.");
+        setPaymentJob(null);
         fetchJobs();
       } else {
-        alert(data.message || "Failed to complete job");
+        alert("Failed to create payment session");
       }
     } catch (err) {
       console.error(err);
-      alert("Error completing job");
+      alert("Error creating payment session");
     }
   };
 
@@ -202,21 +223,10 @@ const MechanicDashboard = () => {
       <div className="row justify-content-center">
         {jobs.map((job) => (
           <div key={job.id} className="col-md-5 col-lg-4 mb-4">
-            <div className="job-card shadow-sm p-3">
-              <h5 className="fw-bold">
-                {job.serviceName || `Service #${job.serviceId}`}
-              </h5>
-              <p>
-                <strong>Location:</strong>{" "}
-                {job.location ||
-                  (job.pickupLat && job.pickupLng
-                    ? `${job.pickupLat}, ${job.pickupLng}`
-                    : "Unknown")}
-              </p>
-              <p>
-                <strong>Description:</strong>{" "}
-                {job.description || "No description"}
-              </p>
+            <div className="job-card shadow-sm p-3 rounded-4">
+              <h5 className="fw-bold">{job.serviceName || `Service #${job.serviceId}`}</h5>
+              <p><strong>Location:</strong> {job.location || "Unknown"}</p>
+              <p><strong>Description:</strong> {job.description || "No description"}</p>
               <p>
                 <strong>Status:</strong>{" "}
                 <span
@@ -227,45 +237,35 @@ const MechanicDashboard = () => {
                       ? "bg-primary"
                       : job.status === "Ongoing"
                       ? "bg-info text-dark"
+                      : job.status === "Payment_Pending"
+                      ? "bg-secondary"
                       : job.status === "Completed"
                       ? "bg-success"
-                      : "bg-secondary"
+                      : "bg-dark"
                   }`}
                 >
-                  {job.status}
+                  {job.status === "Payment_Pending"
+                    ? "Waiting for Payment Confirmation"
+                    : job.status}
                 </span>
               </p>
 
-              {/* --- Buttons --- */}
               {activeTab === "available" && job.status === "Pending" && (
-                <button
-                  className="btn btn-success w-100 mt-2"
-                  onClick={() => handleAccept(job.id)}
-                >
+                <button className="btn btn-success w-100 mt-2" onClick={() => handleAccept(job.id)}>
                   Accept Job
                 </button>
               )}
 
               {activeTab === "accepted" && job.status === "Accepted" && (
                 <>
-                  {/* ✅ Show Start only if no OTP yet */}
                   {!job.otpCode && (
-                    <button
-                      className="btn btn-warning w-100 mt-2"
-                      onClick={() => handleStartJob(job.id)}
-                    >
+                    <button className="btn btn-warning w-100 mt-2" onClick={() => handleStartJob(job.id)}>
                       Start Job
                     </button>
                   )}
-
-                  <button
-                    className="btn btn-outline-primary w-100 mt-2"
-                    onClick={() => setMapJob(job)}
-                  >
+                  <button className="btn btn-outline-primary w-100 mt-2" onClick={() => setMapJob(job)}>
                     View on Map
                   </button>
-
-                  {/* ✅ Show OTP input if OTP exists */}
                   {job.otpCode && (
                     <div className="otp-box mt-3">
                       <input
@@ -275,10 +275,7 @@ const MechanicDashboard = () => {
                         value={otpInput}
                         onChange={(e) => setOtpInput(e.target.value)}
                       />
-                      <button
-                        className="btn btn-primary w-100"
-                        onClick={() => handleVerifyOtp(job.id)}
-                      >
+                      <button className="btn btn-primary w-100" onClick={() => handleVerifyOtp(job.id)}>
                         Verify OTP
                       </button>
                     </div>
@@ -289,7 +286,7 @@ const MechanicDashboard = () => {
               {activeTab === "accepted" && job.status === "Ongoing" && (
                 <button
                   className="btn btn-success w-100 mt-2"
-                  onClick={() => handleCompleteJob(job.id)}
+                  onClick={() => handleCompleteJob(job)}
                 >
                   Mark as Done
                 </button>
@@ -299,12 +296,48 @@ const MechanicDashboard = () => {
         ))}
       </div>
 
+      {/* Map Modal */}
       <MapModal
         show={!!mapJob}
         onClose={() => setMapJob(null)}
         lat={mapJob?.pickupLat}
         lng={mapJob?.pickupLng}
       />
+
+      {/* Payment Modal */}
+      {paymentJob && (
+        <div className="modal-overlay">
+          <div className="modal-card payment-card">
+            <h5 className="fw-bold text-center mb-3">
+              💰 Complete Job & Send Payment Link
+            </h5>
+            <p>
+              <strong>Base Amount:</strong> ₹
+              {paymentJob.baseAmount || 500}
+            </p>
+            <input
+              type="number"
+              className="form-control mb-2"
+              placeholder="Extra Amount (optional)"
+              value={extraAmount}
+              onChange={(e) => setExtraAmount(e.target.value)}
+            />
+            <textarea
+              className="form-control mb-3"
+              placeholder="Description (optional)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            ></textarea>
+
+            <button className="btn btn-success w-100" onClick={handleSendPaymentLink}>
+              ✅ Send Payment Link to Customer
+            </button>
+            <button className="btn btn-secondary w-100 mt-2" onClick={() => setPaymentJob(null)}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

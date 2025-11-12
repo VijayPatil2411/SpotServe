@@ -45,12 +45,16 @@ public class Job {
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
 
-    // ✅ Relation to ServiceEntity for reference
+    // ✅ Payment field — used when a mechanic completes job & Stripe URL is generated
+    @Column(name = "payment_url", columnDefinition = "TEXT")
+    private String paymentUrl;
+
+    // ✅ Relations
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id", insertable = false, updatable = false)
     private ServiceEntity service;
 
-    // ✅ Transient (non-persistent) fields for display
+    // ✅ Transient fields (not saved in DB)
     @Transient
     private String serviceName;
 
@@ -66,9 +70,8 @@ public class Job {
     public Job() {}
 
     // ==============================
-    // ✅ Getters & Setters
+    // ✅ Getters and Setters
     // ==============================
-
     public Long getId() {
         return id;
     }
@@ -173,6 +176,15 @@ public class Job {
         this.createdAt = createdAt;
     }
 
+    // ✅ New payment URL getter/setter
+    public String getPaymentUrl() {
+        return paymentUrl;
+    }
+
+    public void setPaymentUrl(String paymentUrl) {
+        this.paymentUrl = paymentUrl;
+    }
+
     public ServiceEntity getService() {
         return service;
     }
@@ -180,10 +192,6 @@ public class Job {
     public void setService(ServiceEntity service) {
         this.service = service;
     }
-
-    // ==============================
-    // ✅ Display Helper Fields
-    // ==============================
 
     public String getServiceName() {
         if (serviceName != null && !serviceName.isBlank()) return serviceName;

@@ -38,7 +38,6 @@ const MyRequests = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Smooth UI update
       setRequests((prev) =>
         prev.map((req) =>
           req.id === id ? { ...req, status: "CANCELLED", fading: true } : req
@@ -60,7 +59,6 @@ const MyRequests = () => {
     }
   };
 
-  // ✅ New: Fetch OTP for Accepted Job
   const fetchOtp = async (jobId) => {
     const token = localStorage.getItem("token");
     try {
@@ -76,6 +74,16 @@ const MyRequests = () => {
       console.error(err);
       alert("Error fetching OTP");
     }
+  };
+
+  // ✅ Handle payment redirection
+  const handlePayNow = (url) => {
+    if (!url) {
+      alert("No payment link found for this job.");
+      return;
+    }
+    alert("💳 Redirecting to payment gateway...");
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -129,9 +137,11 @@ const MyRequests = () => {
                             ? "bg-primary"
                             : status === "ONGOING"
                             ? "bg-info text-dark"
+                            : status === "PAYMENT_PENDING"
+                            ? "bg-secondary"
                             : status === "CANCELLED"
                             ? "bg-danger"
-                            : "bg-secondary"
+                            : "bg-dark"
                         }`}
                       >
                         {status.charAt(0) + status.slice(1).toLowerCase()}
@@ -153,6 +163,13 @@ const MyRequests = () => {
                           onClick={() => fetchOtp(req.id)}
                         >
                           View OTP
+                        </button>
+                      ) : status === "PAYMENT_PENDING" && req.paymentUrl ? (
+                        <button
+                          className="btn btn-sm btn-success"
+                          onClick={() => handlePayNow(req.paymentUrl)}
+                        >
+                          💳 Pay Now
                         </button>
                       ) : (
                         <span className="text-muted">—</span>

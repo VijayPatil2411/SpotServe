@@ -38,8 +38,14 @@ public class JobController {
 
         List<Job> jobs = jobRepository.findByCustomerId(user.getId());
         jobs.forEach(job -> {
+            // ✅ Ensure related service name
             if (job.getService() != null && job.getService().getName() != null)
                 job.setServiceName(job.getService().getName());
+
+            // ✅ Ensure payment URL is explicitly fetched (so it appears in frontend JSON)
+            if (job.getPaymentUrl() != null && !job.getPaymentUrl().isBlank()) {
+                job.setPaymentUrl(job.getPaymentUrl());
+            }
         });
 
         return ResponseEntity.ok(jobs);
@@ -185,7 +191,7 @@ public class JobController {
     }
 
     /* ======================================================
-       ✅ 7. Start Job → Generate OTP (persist)
+       ✅ 7. Start Job → Generate OTP
     ====================================================== */
     @PutMapping("/{jobId}/start")
     public ResponseEntity<?> startJob(@PathVariable Long jobId,
@@ -204,10 +210,8 @@ public class JobController {
         if (!"Accepted".equalsIgnoreCase(job.getStatus()))
             return ResponseEntity.badRequest().body("{\"message\": \"Job not in accepted state\"}");
 
-        // ✅ Do not regenerate if already exists
-        if (job.getOtpCode() != null) {
+        if (job.getOtpCode() != null)
             return ResponseEntity.ok("{\"message\": \"OTP already generated. Ask the customer for it.\"}");
-        }
 
         int otp = (int) (Math.random() * 900000) + 100000;
         job.setOtpCode(String.valueOf(otp));
@@ -217,7 +221,7 @@ public class JobController {
     }
 
     /* ======================================================
-       ✅ 8. Customer fetches OTP
+       ✅ 8. Fetch OTP (Customer)
     ====================================================== */
     @GetMapping("/{jobId}/otp")
     public ResponseEntity<?> getCustomerOtp(@PathVariable Long jobId,
@@ -243,7 +247,7 @@ public class JobController {
     }
 
     /* ======================================================
-       ✅ 9. Verify OTP → Mark as Ongoing
+       ✅ 9. Verify OTP
     ====================================================== */
     @PutMapping("/{jobId}/verify-otp")
     public ResponseEntity<?> verifyOtp(@PathVariable Long jobId,
@@ -270,7 +274,7 @@ public class JobController {
     }
 
     /* ======================================================
-       ✅ 10. Complete Job
+       ✅ 10. Complete Job (Fallback)
     ====================================================== */
     @PutMapping("/{jobId}/complete")
     public ResponseEntity<?> completeJob(@PathVariable Long jobId,
@@ -292,7 +296,7 @@ public class JobController {
     }
 
     /* ======================================================
-       ✅ Utility: Haversine distance
+       ✅ Utility: Distance Calculation
     ====================================================== */
     private double haversine(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371;

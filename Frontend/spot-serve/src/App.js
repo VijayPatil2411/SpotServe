@@ -16,19 +16,19 @@ import TermsPrivacy from "./pages/TermsPrivacy/TermsPrivacy";
 import CustomerDashboard from "./pages/Customer/CustomerDashboard";
 import MyRequests from "./pages/Customer/MyRequests";
 import CustomerProfile from "./pages/Customer/CustomerProfile";
+import PaymentSuccess from "./pages/Customer/PaymentSuccess"; // ✅ New
 
 // 🔹 Mechanic Pages
 import MechanicDashboard from "./pages/Mechanic/MechanicDashboard";
 import MechanicProfile from "./pages/Mechanic/MechanicProfile";
 
 // 🔹 Admin Pages
-import AdminDashboard from "./pages/Admin/AdminDashboard"; // ✅ Admin Dashboard
-import AdminMechanics from "./pages/Admin/AdminMechanics"; // ✅ Added Manage Mechanics
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+import AdminMechanics from "./pages/Admin/AdminMechanics";
 
 const App = () => {
   const user = JSON.parse(localStorage.getItem("user"));
 
-  // ✅ Reusable ProtectedRoute wrapper
   const ProtectedRoute = ({ children, allowedRoles }) => {
     if (!user) return <Navigate to="/" replace />;
     if (allowedRoles && !allowedRoles.includes(user.role))
@@ -80,6 +80,10 @@ const App = () => {
               <CustomerProfile />
             </ProtectedRoute>
           }
+        />
+        <Route
+          path="/payment-success"  // ✅ New Route
+          element={<PaymentSuccess />}
         />
 
         {/* 🔹 Mechanic Routes */}
