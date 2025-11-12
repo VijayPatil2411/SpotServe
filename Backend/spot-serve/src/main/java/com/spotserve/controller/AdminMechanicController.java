@@ -77,25 +77,41 @@ public class AdminMechanicController {
         if (userDetails == null)
             return ResponseEntity.status(401).body("Unauthorized");
 
-        // Prevent duplicate email
         if (userRepository.findByEmail(newMechanic.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Email already exists"));
         }
 
-        // Set default role and timestamp
         newMechanic.setRole("MECHANIC");
         newMechanic.setCreatedAt(Instant.now());
 
-        // ✅ Handle latitude & longitude safely
         if (newMechanic.getLatitude() == null) newMechanic.setLatitude(0.0);
         if (newMechanic.getLongitude() == null) newMechanic.setLongitude(0.0);
 
-        // Encrypt password
         newMechanic.setPassword(passwordEncoder.encode(newMechanic.getPassword()));
 
-        // Save to DB
         userRepository.save(newMechanic);
 
         return ResponseEntity.ok(Map.of("message", "Mechanic added successfully!"));
+    }
+
+    // ✅ 3. Delete mechanic safely
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteMechanic(@PathVariable Long id,
+                                            @AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null)
+            return ResponseEntity.status(401).body("Unauthorized");
+
+        Optional<User> mechanicOpt = userRepository.findById(id);
+        if (mechanicOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "Mechanic not found"));
+        }
+
+        User mechanic = mechanicOpt.get();
+        if (!"MECHANIC".equalsIgnoreCase(mechanic.getRole())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "User is not a mechanic"));
+        }
+
+        userRepository.delete(mechanic);
+        return ResponseEntity.ok(Map.of("message", "Mechanic deleted successfully!"));
     }
 }
