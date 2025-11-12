@@ -1,1 +1,3 @@
 /.metadata/
+# Ignore sensitive Spring config
+spot-serve/src/main/resources/application.properties
