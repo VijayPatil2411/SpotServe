@@ -1,186 +1,470 @@
-/* =========================
-   NAVBAR STYLING
-   ========================= */
+/* Navbar.css */
 
-/* Navbar Wrapper */
-.navbar-wrapper {
+:root {
+  --navbar-bg: #1a1d29;
+  --navbar-text: #e4e6eb;
+  --navbar-hover: #ffffff;
+  --brand-primary: #4c6ef5;
+  --brand-gradient: linear-gradient(135deg, #667eea 0%, #4c6ef5 100%);
+  --btn-primary: #4c6ef5;
+  --btn-primary-hover: #5c7cfa;
+  --btn-outline: rgba(255, 255, 255, 0.1);
+  --btn-outline-hover: rgba(255, 255, 255, 0.2);
+  --btn-danger: #fa5252;
+  --btn-danger-hover: #ff6b6b;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =========================
+   NAVBAR BASE
+   ========================= */
+.navbar-modern {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  background: linear-gradient(90deg, #0066ff, #0052cc);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  z-index: 900;
-  height: 58px; /* Comfortable height */
-  display: flex;
-  align-items: center;
+  background: var(--navbar-bg);
+  box-shadow: var(--shadow);
+  z-index: 1000;
+  padding: 0.75rem 0;
+  backdrop-filter: blur(10px);
 }
 
-/* Inner Container */
-.navbar-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 18px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* brand on left, links+buttons on right */
-}
-
-/* Brand - left side */
-.navbar-brand {
-  color: white !important;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
-  text-decoration: none;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-}
-
-/* Right side container (links + buttons) */
-.nav-right {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-/* Navbar Links */
-.nav-link-custom {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 14px;
-  transition: color 0.2s ease;
-  display: flex;
-  align-items: center;
-  line-height: 1;
-}
-
-.nav-link-custom:hover {
-  color: #dbe9ff;
+body {
+  padding-top: 70px;
 }
 
 /* =========================
-   BUTTONS
+   BRAND LOGO
    ========================= */
-.btn-login,
-.btn-register,
-.btn-nav,
-.btn-logout {
-  font-size: 13.5px;
-  padding: 6px 12px;
-  border-radius: 5px;
-  transition: all 0.2s ease;
-  line-height: 1.2;
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  transition: var(--transition);
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+}
+
+.brand-logo:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+.brand-icon {
+  font-size: 1.75rem;
+  filter: drop-shadow(0 2px 4px rgba(76, 110, 245, 0.4));
+}
+
+.brand-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+}
+
+/* =========================
+   NAVIGATION LINKS (DESKTOP)
+   ========================= */
+.nav-links {
+  margin-right: 1rem;
+  padding-right: 1rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-link-modern {
+  color: var(--navbar-text);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  transition: var(--transition);
+  position: relative;
+}
+
+.nav-link-modern::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--brand-primary);
+  transition: var(--transition);
+  transform: translateX(-50%);
+}
+
+.nav-link-modern:hover {
+  color: var(--navbar-hover);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-link-modern:hover::after {
+  width: 60%;
+}
+
+/* =========================
+   BUTTONS (MODERN DESIGN)
+   ========================= */
+.btn-modern {
+  padding: 0.5rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
   cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   height: 36px;
 }
 
-/* Login Button */
-.btn-login {
-  border: 1px solid #fff;
+/* Small Button (After Login) */
+.btn-modern-sm {
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
+  height: 32px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.btn-modern:active {
+  transform: translateY(1px);
+}
+
+/* Primary Button */
+.btn-modern-primary {
+  background: var(--brand-gradient);
+  color: white;
+}
+
+.btn-modern-primary:hover {
+  box-shadow: 0 4px 16px rgba(76, 110, 245, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Outline Button */
+.btn-modern-outline {
+  background: var(--btn-outline);
+  color: var(--navbar-text);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-modern-outline:hover {
+  background: var(--btn-outline-hover);
+  color: var(--navbar-hover);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Danger Button */
+.btn-modern-danger {
+  background: var(--btn-danger);
+  color: white;
+}
+
+.btn-modern-danger:hover {
+  background: var(--btn-danger-hover);
+  box-shadow: 0 4px 16px rgba(250, 82, 82, 0.4);
+  transform: translateY(-2px);
+}
+
+/* =========================
+   USER GREETING
+   ========================= */
+.user-greeting {
+  padding: 0.4rem 0.75rem;
+  background: rgba(76, 110, 245, 0.15);
+  border-radius: 10px;
+  color: var(--navbar-text);
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid rgba(76, 110, 245, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+  height: 32px;
+}
+
+.user-name {
+  font-weight: 700;
+  color: var(--brand-primary);
+  text-transform: capitalize;
+}
+
+/* =========================
+   HAMBURGER MENU (MOBILE)
+   ========================= */
+.navbar-toggler {
   background: transparent;
-  color: white;
-}
-
-.btn-login:hover {
-  background: white;
-  color: #0052cc;
-}
-
-/* Register Button */
-.btn-register {
-  background: white;
-  color: #0052cc;
   border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  z-index: 1001;
 }
 
-.btn-register:hover {
-  background: #e0e7ff;
+.hamburger {
+  width: 28px;
+  height: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
 }
 
-/* Navigation Buttons */
-.btn-nav {
-  border: 1px solid #e0e7ff;
-  background: transparent;
-  color: white;
+.hamburger span {
+  width: 100%;
+  height: 3px;
+  background: var(--navbar-hover);
+  border-radius: 2px;
+  transition: var(--transition);
 }
 
-.btn-nav:hover {
-  background: white;
-  color: #0052cc;
+.hamburger.active span:nth-child(1) {
+  transform: rotate(45deg) translateY(8px);
 }
 
-/* Logout Button */
-.btn-logout {
-  background: #dc3545;
-  color: white;
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+  transform: rotate(-45deg) translateY(-8px);
+}
+
+/* =========================
+   MOBILE MENU
+   ========================= */
+.nav-mobile {
+  position: fixed;
+  top: 70px;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 70px);
+  background: var(--navbar-bg);
+  transform: translateX(-100%);
+  transition: var(--transition);
+  overflow-y: auto;
+  z-index: 999;
+}
+
+.nav-mobile.show {
+  transform: translateX(0);
+}
+
+.mobile-menu-content {
+  padding: 1.5rem;
+}
+
+.mobile-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mobile-section:last-child {
+  border-bottom: none;
+}
+
+/* Mobile Links */
+.nav-link-mobile {
+  color: var(--navbar-text);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  transition: var(--transition);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.nav-link-mobile:hover {
+  color: var(--navbar-hover);
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(5px);
+}
+
+/* Mobile Actions */
+.mobile-actions {
+  padding-top: 0.5rem;
+}
+
+/* Mobile Buttons */
+.btn-mobile {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
   border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-bottom: 0.5rem;
 }
 
-.btn-logout:hover {
-  background: #b02a37;
+.btn-mobile-primary {
+  background: var(--brand-gradient);
+  color: white;
+}
+
+.btn-mobile-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-mobile-outline {
+  background: var(--btn-outline);
+  color: var(--navbar-text);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-mobile-outline:active {
+  background: var(--btn-outline-hover);
+}
+
+.btn-mobile-danger {
+  background: var(--btn-danger);
+  color: white;
+}
+
+.btn-mobile-danger:active {
+  background: var(--btn-danger-hover);
+}
+
+/* Mobile User Greeting */
+.user-greeting-mobile {
+  padding: 1rem;
+  background: rgba(76, 110, 245, 0.15);
+  border-radius: 10px;
+  color: var(--navbar-text);
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-align: center;
+  border: 1px solid rgba(76, 110, 245, 0.3);
+  margin-bottom: 1rem;
+}
+
+.user-greeting-mobile .user-name {
+  display: block;
+  font-weight: 700;
+  color: var(--brand-primary);
+  font-size: 1.25rem;
+  margin-top: 0.25rem;
+  text-transform: capitalize;
 }
 
 /* =========================
    RESPONSIVE DESIGN
    ========================= */
-@media (max-width: 992px) {
-  .navbar-container {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    height: auto;
-    padding: 8px 16px;
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .nav-links {
+    gap: 0.5rem !important;
   }
 
-  .nav-right {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    width: 100%;
-    gap: 10px;
+  .nav-link-modern {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
   }
 
-  .btn-login,
-  .btn-register,
-  .btn-nav,
-  .btn-logout {
-    font-size: 12.5px;
-    padding: 4px 8px;
-    height: 32px;
+  .btn-modern {
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
   }
 
-  .nav-link-custom {
-    font-size: 13px;
+  .user-greeting {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.75rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .navbar-modern {
+    padding: 0.5rem 0;
   }
 
-  .navbar-brand {
-    font-size: 17px;
+  body {
+    padding-top: 60px;
+  }
+
+  .nav-mobile {
+    top: 60px;
+    height: calc(100vh - 60px);
+  }
+
+  .brand-text {
+    font-size: 1.25rem;
+  }
+
+  .brand-icon {
+    font-size: 1.5rem;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .brand-text {
+    font-size: 1.1rem;
+  }
+
+  .brand-icon {
+    font-size: 1.35rem;
+  }
+
+  .mobile-menu-content {
+    padding: 1rem;
   }
 }
 
 /* =========================
-   CONTENT SPACING & Z-INDEX
+   MODAL Z-INDEX FIX
    ========================= */
-
-/* Prevent content overlap below navbar */
-body {
-  margin-top: 58px; /* equal to navbar height */
-}
-
-/* Ensure modals appear above navbar */
 .modal-backdrop {
   z-index: 1050 !important;
 }
 
 .modal {
   z-index: 1060 !important;
+}
+
+/* =========================
+   SMOOTH SCROLLING
+   ========================= */
+html {
+  scroll-behavior: smooth;
+}
+
+/* =========================
+   ACCESSIBILITY
+   ========================= */
+.btn-modern:focus,
+.btn-mobile:focus,
+.nav-link-modern:focus,
+.nav-link-mobile:focus {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

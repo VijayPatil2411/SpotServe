@@ -37,6 +37,7 @@
   cursor: pointer;
   transition: 0.2s;
 }
+
 .login-close:hover {
   color: #000;
 }
@@ -66,6 +67,7 @@
 .password-wrapper {
   position: relative;
 }
+
 .password-toggle {
   position: absolute;
   right: 12px;
@@ -86,6 +88,7 @@
   font-weight: 500;
   transition: 0.3s;
 }
+
 .login-submit:hover {
   background: #084298;
 }
@@ -102,6 +105,7 @@
   cursor: pointer;
   transition: 0.3s;
 }
+
 .google-btn:hover {
   background: #f7f7f7;
 }
@@ -140,6 +144,82 @@
   }
 }
 
+/* Toast Notification Styles */
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  z-index: 10000;
+  animation: toastSlideIn 0.3s ease forwards;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toast-notification.toast-success {
+  background: #10b981;
+  color: white;
+}
+
+.toast-notification.toast-error {
+  background: #ef4444;
+  color: white;
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+/* Page Exit Animation - Smooth Fade Out */
+.login-overlay.overlay-page-exiting {
+  animation: pageOverlayFadeOut 0.4s ease forwards;
+}
+
+.login-modal.page-exiting {
+  animation: pageModalFadeOut 0.4s ease forwards;
+}
+
+@keyframes pageOverlayFadeOut {
+  from {
+    background: rgba(15, 15, 15, 0.7);
+    opacity: 1;
+  }
+  to {
+    background: rgba(15, 15, 15, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes pageModalFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   .login-modal {
@@ -149,24 +229,41 @@
   .login-title {
     font-size: 1.1rem;
   }
+
+  .toast-notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    padding: 0.9rem 1.2rem;
+  }
 }
 
-/* exit animation when swapping to Register */
+/* Exit animation when swapping to Register */
 .login-modal.exiting {
   animation: slideOut 0.35s ease forwards;
 }
 
 .login-overlay.overlay-exiting {
-  /* slightly fade the overlay while modal exits */
   animation: fadeOut 0.35s ease forwards;
 }
 
 @keyframes slideOut {
-  from { transform: translateY(0) scale(1); opacity: 1; }
-  to { transform: translateX(-14%) scale(.98); opacity: 0; }
+  from {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-14%) scale(0.98);
+    opacity: 0;
+  }
 }
 
 @keyframes fadeOut {
-  from { background: rgba(15,15,15,0.7); }
-  to { background: rgba(15,15,15,0.3); }
+  from {
+    background: rgba(15, 15, 15, 0.7);
+  }
+  to {
+    background: rgba(15, 15, 15, 0.3);
+  }
 }
+

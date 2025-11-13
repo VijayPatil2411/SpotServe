@@ -9,6 +9,7 @@ const Login = ({ show, onClose }) => {
   const popupRef = useRef(null);
   const [exiting, setExiting] = useState(false);
   const modalRef = useRef(null);
+  const [toast, setToast] = useState({ show: false, message: "", type: "" });
   const navigate = useNavigate();
 
   const API_BASE =
@@ -25,6 +26,11 @@ const Login = ({ show, onClose }) => {
     const { name, value } = e.target;
     setForm((s) => ({ ...s, [name]: value }));
     setErrors((s) => ({ ...s, [name]: undefined }));
+  };
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
   };
 
   const handleSubmit = async (e) => {
@@ -44,39 +50,37 @@ const Login = ({ show, onClose }) => {
       const data = await res.json();
 
       if (res.ok && data.token) {
-        // Always expect "user" object in response
         const user = data.user || {
           id: data.id,
           name: data.name,
           role: data.role,
           email: form.email,
+          username: data.username || data.name,
         };
 
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(user));
 
-        alert("Login successful!");
-        onClose();
-
-        // Notify app components
         window.dispatchEvent(new Event("userLogin"));
+        window.dispatchEvent(new Event("storage"));
+        showToast("Login successful! 🎉", "success");
 
-        // ✅ Role-based navigation
-        if (user.role === "CUSTOMER") {
-          navigate("/dashboard");
-        } else if (user.role === "MECHANIC") {
-          navigate("/mechanic/dashboard");
-        } else if (user.role === "ADMIN") {
-          navigate("/admin/dashboard");
-        } else {
-          navigate("/");
-        }
+        setForm({ email: "", password: "" });
+
+        setTimeout(() => {
+          onClose();
+          setTimeout(() => {
+            navigate("/");
+            // keep reload if you still want it
+            setTimeout(() => window.location.reload(), 200);
+          }, 100);
+        }, 300);
       } else {
-        alert(data.error || "Invalid credentials");
+        showToast(data.error || "Invalid credentials", "error");
       }
     } catch (err) {
       console.error("Login failed:", err);
-      alert("Login failed. Please try again.");
+      showToast("Login failed. Please try again.", "error");
     } finally {
       setSubmitting(false);
     }
@@ -92,95 +96,103 @@ const Login = ({ show, onClose }) => {
   };
 
   const handleSwapToRegister = () => setExiting(true);
-
   if (!show) return null;
 
   return (
-    <div
-      className={`login-overlay ${exiting ? "overlay-exiting" : ""}`}
-      role="dialog"
-      aria-modal="true"
-    >
-      <div className="login-backdrop" aria-hidden />
-      <div
-        className={`login-modal shadow ${exiting ? "exiting" : ""}`}
-        ref={modalRef}
-      >
-        <button className="login-close" onClick={onClose}>
-          &times;
-        </button>
-
-        <div className="login-header">
-          <div className="login-brand">🔑</div>
-          <div>
-            <h3 className="login-title">Welcome back to SpotServe</h3>
-            <p className="login-sub">Login to access your dashboard</p>
-          </div>
+    <>
+      {toast.show && (
+        <div className={`toast-notification toast-${toast.type}`}>
+          {toast.message}
         </div>
-
-        <form className="login-form" onSubmit={handleSubmit} noValidate>
-          <div className="mb-3">
-            <label className="form-label">Email</label>
-            <input
-              name="email"
-              className={`form-control ${errors.email ? "is-invalid" : ""}`}
-              value={form.email}
-              onChange={handleChange}
-              placeholder="you@example.com"
-              type="email"
-            />
-            {errors.email && (
-              <div className="invalid-feedback">{errors.email}</div>
-            )}
-          </div>
-
-          <div className="mb-3 position-relative">
-            <label className="form-label">Password</label>
-            <input
-              name="password"
-              className={`form-control ${errors.password ? "is-invalid" : ""}`}
-              value={form.password}
-              onChange={handleChange}
-              type="password"
-              placeholder="Password"
-            />
-            {errors.password && (
-              <div className="invalid-feedback">{errors.password}</div>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            className="btn login-submit w-100"
-            disabled={submitting}
-          >
-            {submitting ? "Signing in…" : "Login"}
+      )}
+      <div
+        className={`login-overlay ${exiting ? "overlay-exiting" : ""}`}
+        role="dialog"
+        aria-modal="true"
+      >
+        <div className="login-backdrop" aria-hidden />
+        <div
+          className={`login-modal shadow ${exiting ? "exiting" : ""}`}
+          ref={modalRef}
+        >
+          <button className="login-close" onClick={onClose}>
+            &times;
           </button>
 
-          <div className="login-google-wrap mb-3 mt-2">
-            <button
-              type="button"
-              className="google-btn w-100"
-              onClick={handleGoogleSignIn}
-            >
-              <span className="google-icon">G</span>
-              <span className="google-text">Continue with Google</span>
-            </button>
+          <div className="login-header">
+            <div className="login-brand">🔑</div>
+            <div>
+              <h3 className="login-title">Welcome back to SpotServe</h3>
+              <p className="login-sub">Login to access your dashboard</p>
+            </div>
           </div>
 
-          <div className="login-footer-text mt-3 text-center">
-            Don’t have an account?{" "}
-            <span
-              className="link-like"
-              onClick={handleSwapToRegister}
-              style={{ cursor: "pointer" }}
+          <form className="login-form" onSubmit={handleSubmit} noValidate>
+            <div className="mb-3">
+              <label className="form-label">Email</label>
+              <input
+                name="email"
+                className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                value={form.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                type="email"
+              />
+              {errors.email && (
+                <div className="invalid-feedback">{errors.email}</div>
+              )}
+            </div>
+
+            <div className="mb-3 position-relative">
+              <label className="form-label">Password</label>
+              <input
+                name="password"
+                className={`form-control ${
+                  errors.password ? "is-invalid" : ""
+                }`}
+                value={form.password}
+                onChange={handleChange}
+                type="password"
+                placeholder="Password"
+              />
+              {errors.password && (
+                <div className="invalid-feedback">{errors.password}</div>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              className="btn login-submit w-100"
+              disabled={submitting}
             >
-              Register
-            </span>
-          </div>
-        </form>
+              {submitting ? "Signing in…" : "Login"}
+            </button>
+
+            <div className="login-google-wrap mb-3 mt-2">
+              <button
+                type="button"
+                className="google-btn w-100"
+                onClick={handleGoogleSignIn}
+              >
+                <span className="google-icon">G</span>
+                <span className="google-text">Continue with Google</span>
+              </button>
+            </div>
+
+            <div className="login-footer-text mt-3 text-center">
+              Don't have an account?{" "}
+              <span
+                className="link-like"
+                onClick={handleSwapToRegister}
+                style={{ cursor: "pointer" }}
+              >
+                Register
+              </span>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
