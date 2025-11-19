@@ -1,0 +1,46 @@
+.custom-modal .modal-content {
+  border-radius: 14px;
+  padding: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border: none;
+}
+
+.custom-modal .modal-header {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.custom-modal .modal-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #0d4d91;
+}
+
+.custom-modal .modal-body {
+  padding-top: 0.5rem;
+}
+
+.custom-modal input {
+  border-radius: 10px !important;
+  padding: 0.75rem;
+}
+
+.custom-modal input:focus {
+  box-shadow: 0 0 0 2px rgba(13, 77, 145, 0.25);
+  border-color: #0d4d91;
+}
+
+.custom-modal .btn-primary {
+  background: #0d4d91;
+  border: none;
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+}
+
+.custom-modal .btn-primary:hover {
+  background: #093a6e;
+}
+
+.custom-modal .btn-secondary {
+  border-radius: 10px;
+}

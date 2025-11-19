@@ -1,10 +1,9 @@
-// src/pages/Customer/CustomerDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { getAllServices } from "../../services/customerService";
 import ServiceCards from "../../components/ServiceCards";
+import "./CustomerDashboard.css";
 
-const API_BASE =
-  process.env.REACT_APP_API_BASE || "http://localhost:8080/api/customer";
+const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080/api/customer";
 
 const CustomerDashboard = () => {
   const [services, setServices] = useState([]);
@@ -14,31 +13,20 @@ const CustomerDashboard = () => {
 
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      await fetchServices();
-      await fetchJobs();
-    };
-    fetchData();
-  }, []);
-
-  // ✅ Existing: Fetch all roadside services
+  // Data fetching functions
   const fetchServices = async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await getAllServices();
-      console.log("Services fetched:", data);
       setServices(data || []);
     } catch (err) {
-      console.error("Error fetching services:", err);
       setError("Failed to load services. Check console/network.");
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ New: Fetch user's current and past jobs
   const fetchJobs = async () => {
     try {
       const res = await fetch(`${API_BASE}/jobs/my`, {
@@ -48,106 +36,75 @@ const CustomerDashboard = () => {
       const data = await res.json();
       setJobs(data || []);
     } catch (err) {
-      console.error("Error loading jobs:", err);
+      // Just log; don't show error toast for jobs
+      // Optionally set an error state here if needed
     }
   };
 
-  // ✅ Handle “Pay Now” click
+  useEffect(() => {
+    fetchServices();
+    fetchJobs();
+    // eslint-disable-next-line
+  }, []);
+
   const handlePayNow = (url) => {
-    if (url) {
-      window.open(url, "_blank");
-    } else {
-      alert("Payment link not available yet. Please wait for confirmation.");
-    }
+    if (url) window.open(url, "_blank");
+    else alert("Payment link not available yet. Please wait for confirmation.");
   };
 
   return (
-    <div className="mt-4 mb-5">
-      <div className="container">
-        {/* -------------------- SERVICES SECTION -------------------- */}
-        <h2 className="text-center fw-semibold mb-2">
-          Available Roadside Services
-        </h2>
-        <p className="text-center text-muted mb-4">
+    <div className="dash-outer">
+      <section className="dash-section">
+        <h2 className="dash-title">Available Roadside Services</h2>
+        <p className="dash-desc">
           Select a service to get quick assistance from nearby mechanics.
         </p>
-
         {loading && (
-          <div className="text-center my-4">
-            <div className="spinner-border" role="status" aria-hidden="true"></div>
-            <div className="mt-2 text-muted">Loading services...</div>
+          <div className="dash-loading">
+            <span className="dash-spinner"></span>
+            <span>Loading services...</span>
           </div>
         )}
-
-        {error && (
-          <div className="alert alert-danger" role="alert">
-            {error}
-          </div>
-        )}
-
+        {error && <div className="dash-alert">{error}</div>}
         {!loading && !error && <ServiceCards services={services} />}
+      </section>
 
-        {/* -------------------- PAYMENT SECTION -------------------- */}
-        <hr className="my-5" />
-        <h4 className="fw-bold text-center mb-3">My Active Requests</h4>
-
+      <section className="dash-section">
+        <h3 className="dash-title dash-title-small">My Active Requests</h3>
         {jobs.length === 0 ? (
-          <p className="text-center text-muted">
-            You currently have no active or past requests.
-          </p>
+          <p className="dash-empty">You currently have no active or past requests.</p>
         ) : (
-          <div className="row justify-content-center">
+          <div className="dash-jobs-grid">
             {jobs.map((job) => (
-              <div key={job.id} className="col-md-5 col-lg-4 mb-4">
-                <div className="card shadow-sm p-3 rounded-4">
-                  <h5 className="fw-bold mb-1">
-                    {job.serviceName || `Service #${job.serviceId}`}
-                  </h5>
-                  <p className="m-0">
-                    <strong>Status:</strong>{" "}
-                    <span
-                      className={`badge ${
-                        job.status === "Completed"
-                          ? "bg-success"
-                          : job.status === "PAYMENT_PENDING"
-                          ? "bg-dark"
-                          : job.status === "Ongoing"
-                          ? "bg-info text-dark"
-                          : "bg-warning text-dark"
-                      }`}
-                    >
-                      {job.status === "PAYMENT_PENDING"
-                        ? "Awaiting Payment"
-                        : job.status}
-                    </span>
-                  </p>
-                  <p className="m-0">
-                    <strong>Location:</strong>{" "}
-                    {job.location ||
-                      (job.pickupLat && job.pickupLng
-                        ? `${job.pickupLat}, ${job.pickupLng}`
-                        : "N/A")}
-                  </p>
-                  <p className="m-0">
+              <div key={job.id} className="dash-job-card">
+                <h4 className="dash-job-title">{job.serviceName || `Service #${job.serviceId}`}</h4>
+                <div className="dash-job-info">
+                  <span className={`dash-status dash-status-${job.status?.toLowerCase()}`}>
+                    {job.status === "PAYMENT_PENDING"
+                      ? "Awaiting Payment"
+                      : job.status}
+                  </span>
+                  <span>
+                    <strong>Location:</strong> {job.location || "N/A"}
+                  </span>
+                  <span>
                     <strong>Description:</strong>{" "}
                     {job.description || "No description"}
-                  </p>
-
-                  {/* 💳 Pay Now Button (only if waiting for payment) */}
-                  {job.status === "PAYMENT_PENDING" && job.paymentUrl && (
-                    <button
-                      className="btn btn-primary w-100 mt-3"
-                      onClick={() => handlePayNow(job.paymentUrl)}
-                    >
-                      💳 Pay Now
-                    </button>
-                  )}
+                  </span>
                 </div>
+                {job.status === "PAYMENT_PENDING" && job.paymentUrl && (
+                  <button
+                    className="dash-pay-btn"
+                    onClick={() => handlePayNow(job.paymentUrl)}
+                  >
+                    💳 Pay Now
+                  </button>
+                )}
               </div>
             ))}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 };

@@ -1,0 +1,123 @@
+.dash-outer {
+  max-width: 1050px;
+  margin: 0 auto;
+  padding: 2.5rem 1rem;
+}
+.dash-section {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(70,80,150,0.08);
+  padding: 1.5rem 1.3rem 2.2rem 1.3rem;
+  margin-bottom: 2.5rem;
+}
+.dash-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.3rem;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+.dash-title-small {
+  font-size: 1.18rem;
+  margin-top: 0.4rem;
+}
+.dash-desc {
+  color: #6B7280;
+  text-align: center;
+  margin-bottom: 1.8rem;
+}
+.dash-alert {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 8px;
+  padding: 0.7rem 1.1rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-weight: 600;
+}
+.dash-loading {
+  text-align: center;
+}
+.dash-spinner {
+  border: 3px solid #e0e7ff;
+  border-top: 3px solid #3B82F6;
+  border-radius: 50%;
+  width: 24px; height: 24px;
+  display: inline-block;
+  margin-right: 0.5rem;
+  animation: dash-spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+@keyframes dash-spin {
+  to { transform: rotate(360deg);}
+}
+.dash-empty {
+  text-align: center;
+  color: #646b8a;
+  margin-top: 1.6rem;
+  font-size: 1rem;
+}
+
+/* Responsive grid for jobs */
+.dash-jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.3rem;
+}
+
+.dash-job-card {
+  background: #F3F6FA;
+  border-radius: 13px;
+  box-shadow: 0 2px 16px rgba(120,130,200,0.08);
+  padding: 1.3rem 1rem 1.2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.42rem;
+}
+.dash-job-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: .38rem;
+}
+.dash-job-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: .95rem;
+  margin-bottom: .4rem;
+}
+.dash-status {
+  display: inline-block;
+  border-radius: 7px;
+  padding: 2px 11px;
+  font-size: 0.98em;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+.dash-status-completed { background: #e7fbe7; color: #319034; }
+.dash-status-payment_pending { background: #fff7d6; color: #b67200; }
+.dash-status-ongoing { background: #eef6fd; color: #1c6bbb; }
+.dash-status-cancelled, .dash-status-failed { background: #fee2e2; color: #cc3a3a; }
+.dash-status-pending { background: #f4f4f2; color: #777; }
+.dash-status-other { background: #eee; color: #888; }
+
+.dash-pay-btn {
+  margin-top: 0.8rem;
+  padding: .6rem 0;
+  background: linear-gradient(90deg,#0ea5e9,#2563eb);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.01rem;
+  cursor: pointer;
+  transition: background .19s;
+}
+.dash-pay-btn:hover { background: linear-gradient(90deg,#0284c7,#334155); }
+
+@media (max-width: 640px) {
+  .dash-section { padding: 1rem 0.2rem 1.5rem 0.2rem; }
+  .dash-title { font-size: 1.25rem; }
+  .dash-job-title { font-size: .99rem; }
+}

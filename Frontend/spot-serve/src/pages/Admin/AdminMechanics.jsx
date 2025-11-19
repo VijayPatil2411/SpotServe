@@ -16,11 +16,19 @@ const AdminMechanics = () => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [selectedMechanic, setSelectedMechanic] = useState(null);
 
   useEffect(() => {
     fetchMechanics();
   }, []);
+
+  // close modal on Escape key
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") setShowAddModal(false);
+    };
+    if (showAddModal) document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [showAddModal]);
 
   const fetchMechanics = async () => {
     setLoading(true);
@@ -41,7 +49,6 @@ const AdminMechanics = () => {
 
   const handleDeleteMechanic = async (id, name) => {
     if (!window.confirm(`⚠️ Are you sure you want to remove ${name}?`)) return;
-
     const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${API_BASE}/${id}`, {
@@ -49,7 +56,6 @@ const AdminMechanics = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to delete mechanic");
-
       const data = await res.json();
       alert(`✅ ${data.message}`);
       fetchMechanics();
@@ -166,8 +172,9 @@ const AdminMechanics = () => {
 
       {/* ✅ Add Mechanic Modal */}
       {showAddModal && (
-        <div className="modal-overlay">
-          <div className="modal-card add-mechanic-card animate-modal">
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-card add-mechanic-card animate-modal" onClick={(e) => e.stopPropagation()}>
+            
             <h4 className="fw-bold mb-3 text-center">➕ Add New Mechanic</h4>
             <form onSubmit={handleAddMechanic}>
               <input type="text" className="form-control mb-2" placeholder="Full Name"

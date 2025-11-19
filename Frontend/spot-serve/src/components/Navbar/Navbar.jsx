@@ -67,8 +67,8 @@ const Navbar = () => {
     };
 
     // Add event listeners
-    window.addEventListener("open-registration", handleOpenRegistration);
-    window.addEventListener("open-login", handleOpenLogin);
+    window.addEventListener("openRegister", handleOpenRegistration);
+    window.addEventListener("openLogin", handleOpenLogin);
     window.addEventListener("userLogin", handleUserLogin);
     window.addEventListener("userLogout", handleUserLogout);
     window.addEventListener("storage", handleStorageChange);
@@ -127,7 +127,6 @@ const Navbar = () => {
 
   const roleButtons = {
     CUSTOMER: [
-      { label: "Dashboard", action: navActions.dashboard },
       { label: "Add Vehicle", action: navActions.addVehicle },
       { label: "My Requests", action: navActions.myRequests },
       { label: "Profile", action: navActions.profile },
@@ -140,7 +139,6 @@ const Navbar = () => {
       { label: "Dashboard", action: navActions.dashboard },
       { label: "Mechanics", action: navActions.mechanics },
       { label: "Revenue", action: navActions.revenue },
-      { label: "Reports", action: navActions.reports },
     ],
   };
 

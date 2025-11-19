@@ -1,108 +1,317 @@
-/* ===== MyRequests.css ===== */
+/* ===== MyRequests.css - Ultra Compact Table Version ===== */
 
-.my-requests-table {
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  background-color: #ffffff;
+.my-requests-wrapper {
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+  min-height: 100vh;
+  padding: 1rem 0;
 }
 
-.my-requests-table th {
-  background-color: #212529;
-  color: #fff;
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.9rem;
+/* ==================== KPI Section ==================== */
+
+.kpi-section { padding: 0 0.5rem; }
+
+.kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.9rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: #fff;
+  transition: all 0.3s ease;
+  border-left: 4px solid;
+  cursor: pointer;
 }
 
-.my-requests-table td {
-  vertical-align: middle;
-  font-size: 0.95rem;
-  color: #333;
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
 }
 
-.my-requests-table tr:hover {
-  background-color: #f8f9fa;
-  transition: 0.2s ease-in-out;
+.kpi-pending { border-left-color: #ffc107; }
+.kpi-completed { border-left-color: #28a745; }
+.kpi-cancelled { border-left-color: #dc3545; }
+.kpi-total { border-left-color: #667eea; }
+
+.kpi-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  animation: bounce-sm 2s ease-in-out infinite;
 }
 
-.my-requests-table .badge {
-  font-size: 0.8rem;
-  padding: 0.45em 0.65em;
-  border-radius: 6px;
+@keyframes bounce-sm {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
 
-/* ✅ Cancel button */
-.my-requests-table button.btn-outline-danger {
-  padding: 4px 10px;
-  font-size: 0.85rem;
-  border-radius: 6px;
-  transition: 0.2s ease-in-out;
-  border-width: 1.5px;
-}
+.kpi-content { flex: 1; }
 
-.my-requests-table button.btn-outline-danger:hover {
-  background-color: #dc3545;
-  color: #fff;
-  transform: scale(1.05);
-}
-
-/* Centered page content and spacing */
-.container {
-  margin-top: 60px;
-  margin-bottom: 60px;
-}
-
-h2.text-center {
+.kpi-label {
+  margin: 0;
+  color: #6c757d;
+  font-size: 0.7rem;
   font-weight: 700;
-  color: #222;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.text-muted {
-  font-size: 0.95rem;
+.kpi-value {
+  margin: 0.15rem 0 0 0;
+  color: #333;
+  font-weight: 800;
+  font-size: 1.3rem;
+  line-height: 1;
 }
 
-/* Table responsiveness padding fix */
-.table-responsive {
-  border-radius: 12px;
-  background: white;
-  padding: 10px;
+/* ==================== Page Header ==================== */
+
+.page-header {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* ===== 🔹 New Additions for Smooth Cancel Behavior ===== */
+.page-title {
+  margin: 0;
+  color: #333;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
 
-/* Fade animation for cancelled rows */
-.fade-row {
+.page-subtitle {
+  margin: 0.2rem 0 0 0;
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+/* ==================== Filters Bar ==================== */
+
+.filters-bar {
+  background: #fff;
+  padding: 0.9rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filter-input {
+  border: 2px solid #e9ecef !important;
+  border-radius: 8px !important;
+  font-size: 0.8rem !important;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.filter-input:focus {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1) !important;
+}
+
+.filter-input.compact { padding: 0.35rem 0.5rem !important; }
+
+/* ==================== Table Section ==================== */
+
+.table-wrapper {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.requests-table {
+  margin-bottom: 0;
+  font-size: 0.8rem;
+}
+
+.requests-table thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.requests-table thead th {
+  color: #333;
+  font-weight: 700;
+  padding: 0.6rem 0.5rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border: none;
+}
+
+.requests-table tbody td {
+  padding: 0.5rem 0.5rem;
+  vertical-align: middle;
+  border-color: #f0f0f0;
+  color: #555;
+  font-size: 0.78rem;
+}
+
+.requests-table tbody tr:hover {
+  background-color: #f8f9fa;
+  transition: background-color 0.2s ease;
+}
+
+.requests-table tbody tr.fade-row {
   animation: fadeOut 0.6s ease-in-out;
 }
 
 @keyframes fadeOut {
-  from {
-    background-color: #fff3f3;
-  }
-  to {
-    background-color: #ffffff;
-  }
+  from { background-color: #fff3f3; }
+  to { background-color: #f5f5f5; }
 }
 
-/* Cancel button smoother hover and press animation */
-.cancel-btn {
-  transition: all 0.25s ease;
-}
-
-.cancel-btn:hover {
-  transform: scale(1.05);
-  background-color: #dc3545 !important;
-  color: #fff !important;
-}
-
-/* Dim cancelled requests visually */
-.my-requests-table tr.cancelled-row {
+.requests-table tbody tr.cancelled-row {
   opacity: 0.6;
-  background-color: #f5f5f5 !important;
-  transition: opacity 0.4s ease;
+  background-color: #f9f9f9;
 }
 
-.my-requests-table tr.cancelled-row:hover {
-  opacity: 0.8;
+.requests-table tbody tr.cancelled-row:hover {
+  opacity: 0.75;
+}
+
+.col-num {
+  font-weight: 700;
+  color: #667eea;
+  width: 6%;
+  text-align: center;
+}
+
+.col-service {
+  width: 22%;
+  font-weight: 600;
+}
+
+.service-item {
+  display: inline-block;
+  background: #f0f0f0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 5px;
+  font-size: 0.7rem;
+}
+
+.col-vehicle { width: 14%; color: #999; }
+.col-location { width: 16%; color: #999; }
+.col-status { width: 18%; }
+
+.status-badge-small {
+  font-size: 0.75rem !important;
+  padding: 0.3rem 0.7rem !important;
+  border-radius: 20px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.col-date {
+  width: 12%;
+  color: #999;
+  font-size: 0.75rem;
+}
+
+.col-action {
+  width: 12%;
+  text-align: center;
+}
+
+.btn-action {
+  padding: 0.25rem 0.4rem !important;
+  font-size: 0.85rem !important;
+  border-radius: 5px !important;
+  border: 1px solid !important;
+  transition: all 0.2s ease;
+  min-width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-action:hover { transform: scale(1.08); }
+.btn-action:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.action-none {
+  color: #ccc;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* ==================== Empty State ==================== */
+
+.empty-message {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.empty-icon-small {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.empty-message p {
+  margin: 0;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+/* ==================== Results Footer ==================== */
+
+.results-footer {
+  padding: 0.8rem;
+  color: #999;
+  font-size: 0.75rem;
+}
+
+/* ==================== Responsive Design ==================== */
+
+@media screen and (max-width: 1200px) {
+  .requests-table { font-size: 0.78rem; }
+  .requests-table thead th { padding: 0.5rem 0.4rem; font-size: 0.7rem; }
+  .requests-table tbody td { padding: 0.45rem 0.4rem; }
+}
+
+@media screen and (max-width: 992px) {
+  .page-title { font-size: 1.1rem; }
+  .kpi-card { padding: 0.75rem; }
+  .kpi-icon { font-size: 1.5rem; }
+  .kpi-value { font-size: 1.1rem; }
+  .requests-table { font-size: 0.75rem; }
+  .col-location { display: none; }
+  .col-status { width: 20%; }
+}
+
+@media screen and (max-width: 768px) {
+  .page-title { font-size: 1rem; }
+  .requests-table { font-size: 0.7rem; }
+  .col-vehicle { display: none; }
+  .col-location { display: none; }
+  .col-date { display: none; }
+  .col-service { width: 28%; }
+  .col-status { width: 25%; }
+  .col-action { width: 15%; }
+}
+
+@media screen and (max-width: 576px) {
+  .kpi-icon { font-size: 1.2rem; }
+  .kpi-value { font-size: 0.95rem; }
+  .requests-table { font-size: 0.65rem; }
+  .col-service { width: 35%; }
+  .col-status { width: 30%; }
+  .btn-action { min-width: 22px; height: 22px; }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #999;
 }

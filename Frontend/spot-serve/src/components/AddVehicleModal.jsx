@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import api from "../services/api";
-
+import "./AddVehicleModal.css";
 
 const AddVehicleModal = ({ show, onClose, onVehicleAdded }) => {
   const [vehicle, setVehicle] = useState({
@@ -10,6 +10,7 @@ const AddVehicleModal = ({ show, onClose, onVehicleAdded }) => {
     plateNo: "",
     year: "",
   });
+
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -19,6 +20,7 @@ const AddVehicleModal = ({ show, onClose, onVehicleAdded }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
       const token = localStorage.getItem("token");
 
@@ -26,25 +28,33 @@ const AddVehicleModal = ({ show, onClose, onVehicleAdded }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      alert("✅ Vehicle added successfully!");
+      alert("Vehicle added successfully!");
       setVehicle({ make: "", model: "", plateNo: "", year: "" });
-      onVehicleAdded(); // refresh callback
+      onVehicleAdded();
       onClose();
     } catch (error) {
-      console.error("Error adding vehicle:", error);
-      alert("❌ Failed to add vehicle. Please try again.");
+      alert("Failed to add vehicle.");
+      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal show={show} onHide={onClose} centered>
+    <Modal
+  show={show}
+  onHide={onClose}
+  centered
+  className="custom-modal"
+>
+
       <Modal.Header closeButton>
         <Modal.Title>Add New Vehicle</Modal.Title>
       </Modal.Header>
+
       <Modal.Body>
         <Form onSubmit={handleSubmit}>
+
           <Form.Group className="mb-3">
             <Form.Label>Make</Form.Label>
             <Form.Control
@@ -76,7 +86,7 @@ const AddVehicleModal = ({ show, onClose, onVehicleAdded }) => {
               name="plateNo"
               value={vehicle.plateNo}
               onChange={handleChange}
-              placeholder="e.g. MH12XY1234"
+              placeholder="e.g. MH12AB1234"
               required
             />
           </Form.Group>
@@ -97,15 +107,11 @@ const AddVehicleModal = ({ show, onClose, onVehicleAdded }) => {
             <Button variant="secondary" onClick={onClose} className="me-2">
               Cancel
             </Button>
+
             <Button type="submit" variant="primary" disabled={loading}>
               {loading ? (
                 <>
-                  <Spinner
-                    animation="border"
-                    size="sm"
-                    className="me-2"
-                    role="status"
-                  />
+                  <Spinner animation="border" size="sm" className="me-2" />
                   Adding...
                 </>
               ) : (
@@ -113,6 +119,7 @@ const AddVehicleModal = ({ show, onClose, onVehicleAdded }) => {
               )}
             </Button>
           </div>
+
         </Form>
       </Modal.Body>
     </Modal>

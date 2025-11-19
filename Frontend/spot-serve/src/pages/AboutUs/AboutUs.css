@@ -1,49 +1,53 @@
-.page-wrapper {
-  max-width: 960px;
+.about-wrapper {
+  max-width: 900px;
   margin: 0 auto;
   padding: 2rem 1rem;
-  color: #0f1724;
   font-family: "Segoe UI", sans-serif;
+  color: #0f1724;
 }
 
-.about-hero {
+.hero-box {
   text-align: center;
-  padding: 3rem 1rem;
-  background: linear-gradient(135deg, #e0f7f3, #ffffff);
+  padding: 2.5rem 1rem;
+  background: linear-gradient(135deg, #e9f7ff, #ffffff);
   border-radius: 14px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.06);
   margin-bottom: 2rem;
 }
 
-.about-hero h1 {
-  font-size: 2.2rem;
-  color: #0f7c8c;
+.hero-box h1 {
+  font-size: 2rem;
+  color: #007acc;
   margin-bottom: 0.6rem;
 }
 
-.about-hero p {
-  font-size: 1.05rem;
-  color: #334155;
-}
-
-.about-content h2 {
-  font-size: 1.5rem;
-  margin-top: 1.5rem;
-  margin-bottom: 0.8rem;
-  color: #0d5866;
-}
-
-.about-content p {
+.hero-box p {
   font-size: 1rem;
-  line-height: 1.7;
-  margin-bottom: 1rem;
   color: #334155;
 }
 
-.about-content ul {
+.section-block {
+  margin-bottom: 2rem;
+}
+
+.section-block h2 {
+  font-size: 1.4rem;
+  margin-bottom: 0.6rem;
+  color: #0d4d91;
+}
+
+.section-block p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #334155;
+  margin-bottom: 0.8rem;
+}
+
+.section-block ul {
   padding-left: 1.2rem;
   color: #334155;
 }
-.about-content li {
-  margin-bottom: 0.5rem;
+
+.section-block li {
+  margin-bottom: 0.4rem;
 }

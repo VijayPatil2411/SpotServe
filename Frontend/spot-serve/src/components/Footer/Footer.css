@@ -1,10 +1,12 @@
+/* Footer Base */
 .footer {
-  background-color: #111827;
+  background: #111827;
   color: #fff;
   padding: 40px 20px;
   font-family: "Poppins", sans-serif;
 }
 
+/* Layout */
 .footer-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -13,18 +15,21 @@
   margin: auto;
 }
 
+/* Headings */
 .footer-section h3,
 .footer-section h4 {
   color: #fbbf24;
   margin-bottom: 15px;
 }
 
+/* Text */
 .footer-section p {
   margin: 6px 0;
   font-size: 14px;
   color: #d1d5db;
 }
 
+/* Links List */
 .footer-section ul {
   list-style: none;
   padding: 0;
@@ -37,24 +42,27 @@
 .footer-section ul li a {
   color: #d1d5db;
   text-decoration: none;
-  transition: color 0.3s;
+  transition: 0.3s;
 }
 
 .footer-section ul li a:hover {
   color: #fbbf24;
 }
 
+/* Social Icons */
 .social-icons a {
   color: #d1d5db;
   font-size: 20px;
   margin-right: 10px;
-  transition: color 0.3s;
+  text-decoration: none;
+  transition: 0.3s;
 }
 
 .social-icons a:hover {
   color: #fbbf24;
 }
 
+/* Footer Bottom */
 .footer-bottom {
   text-align: center;
   padding-top: 20px;
@@ -64,6 +72,7 @@
   color: #9ca3af;
 }
 
+/* Mobile */
 @media (max-width: 768px) {
   .footer-container {
     grid-template-columns: 1fr;
@@ -73,4 +82,18 @@
   .social-icons a {
     margin: 0 8px;
   }
+}
+
+/* Vertical Icons (Optional Use) */
+.vertical-icons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vertical-icons a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
 }

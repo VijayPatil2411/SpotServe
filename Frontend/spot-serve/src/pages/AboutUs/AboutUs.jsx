@@ -3,31 +3,53 @@ import "./AboutUs.css";
 
 const AboutUs = () => {
   return (
-    <div className="page-wrapper">
-      <section className="about-hero">
-        <h1>About Us</h1>
-        <p>Learn more about SpotServe, our values, and the team behind the platform.</p>
+    <div className="about-wrapper">
+      {/* Hero Section */}
+      <section className="hero-box">
+        <h1>About SpotServe</h1>
+        <p>Your trusted platform for smooth and simple car service experience.</p>
       </section>
 
-      <section className="about-content">
+      {/* Our Story */}
+      <section className="section-block">
+        <h2>Our Story</h2>
+        <p>
+          SpotServe started with a simple idea — make vehicle servicing easy for everyone.
+          No long queues, no confusion, no hidden details. Just clear, trusted, and quick help.
+        </p>
+        <p>
+          Over time, we grew into a platform that connects car owners with skilled mechanics,
+          reliable service centers, and smooth support. Every feature we build aims to save your
+          time and give you a better service experience.
+        </p>
+      </section>
+
+      {/* Mission */}
+      <section className="section-block">
         <h2>Our Mission</h2>
         <p>
-          Our mission is to make car maintenance stress-free and efficient. We prioritize
-          customer satisfaction, transparency, and technological innovation.
+          We want to make car maintenance stress-free. We focus on customer happiness,
+          transparency, and using simple technology to solve real problems.
         </p>
+      </section>
 
+      {/* Values */}
+      <section className="section-block">
         <h2>Our Values</h2>
         <ul>
           <li>Customer-first approach</li>
-          <li>Innovation and continuous improvement</li>
-          <li>Integrity and transparency</li>
-          <li>Safety and reliability</li>
+          <li>Simple technology that helps</li>
+          <li>Honesty and transparency</li>
+          <li>Safe and reliable service</li>
         </ul>
+      </section>
 
-        <h2>Meet the Team</h2>
+      {/* Team */}
+      <section className="section-block">
+        <h2>Our Team</h2>
         <p>
-          A passionate team of engineers, car enthusiasts, and customer support experts
-          working together to make SpotServe the most trusted platform for car owners.
+          We are a small but passionate team of engineers, mechanics, and support experts
+          who love solving problems and improving your service experience.
         </p>
       </section>
     </div>

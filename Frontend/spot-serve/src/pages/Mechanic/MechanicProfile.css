@@ -1,16 +1,120 @@
-.mechanic-profile .profile-card {
-  max-width: 500px;
-  margin: 0 auto;
-  border-radius: 12px;
-  background-color: #fff;
+@import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+
+.profile-page {
+  max-width: 700px;
+  margin: 2rem auto;
+  font-family: 'Inter', sans-serif;
+  padding: 0 1rem;
 }
 
-.mechanic-profile input:disabled {
-  background-color: #f8f9fa;
+.fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.profile-header {
+  font-weight: 900;
+  font-size: 2.7rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  color: #1F2937;
+}
+
+.profile-info {
+  margin-bottom: 3rem;
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.icon {
+  font-size: 1.6rem;
+  color: #3B82F6;
+  flex-shrink: 0;
+  width: 30px;
+  text-align: center;
+}
+
+.label {
+  font-weight: 600;
+  color: #4B5563;
+  width: 140px;
+  text-transform: capitalize;
+}
+
+.value {
+  flex-grow: 1;
+  font-size: 1.05rem;
+  color: #111827;
+}
+
+.change-password-section {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.change-password-section h2 {
+  font-weight: 700;
+  font-size: 1.55rem;
+  margin-bottom: 1rem;
+  color: #1F2937;
+  text-align: center;
+}
+
+.password-input-row {
+  display: flex;
+  align-items: center;
+  border: 2px solid #D1D5DB;
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  background-color: #F9FAFB;
+}
+
+.password-input-row input {
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  flex-grow: 1;
+  background: transparent;
+  padding-left: 0.5rem;
+}
+
+.update-password-btn {
+  width: 100%;
+  background-color: #2563eb;
+  border: none;
+  color: white;
+  padding: 0.9rem 0;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.update-password-btn:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-.mechanic-profile button {
-  border-radius: 8px;
-  font-weight: 600;
+.update-password-btn:not(:disabled):hover {
+  background-color: #1e40af;
+}
+
+.loading-msg {
+  text-align: center;
+  margin-top: 4rem;
+  font-size: 1.2rem;
+  color: #374151;
 }

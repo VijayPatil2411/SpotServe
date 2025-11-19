@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
+import { FiUser, FiMail, FiPhone, FiLock, FiMapPin, FiTool } from "react-icons/fi";
 import "./MechanicProfile.css";
 
 const MechanicProfile = () => {
   const [profile, setProfile] = useState(null);
-  const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
+  const [prevPassword, setPrevPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  useEffect(() => { fetchProfile(); }, []);
 
   const fetchProfile = async () => {
     try {
@@ -19,72 +18,93 @@ const MechanicProfile = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfile(res.data);
-      setName(res.data.name || "");
-    } catch (err) {
-      console.error("Error fetching profile:", err);
+    } catch {
       alert("Failed to load profile");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdate = async () => {
-    const token = localStorage.getItem("token");
+  const handleUpdatePassword = async () => {
+    if (!prevPassword || !newPassword) {
+      alert("Please enter both previous and new passwords.");
+      return;
+    }
     try {
+      const token = localStorage.getItem("token");
       const res = await api.put(
-        "/api/mechanic/profile",
-        { name, password },
+        "/api/mechanic/profile/change-password",
+        { oldPassword: prevPassword, newPassword },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert("✅ " + (res.data.message || "Profile updated successfully!"));
-      setPassword("");
+      alert("✅ " + (res.data.message || "Password updated successfully!"));
+      setPrevPassword("");
+      setNewPassword("");
       fetchProfile();
-    } catch (err) {
-      console.error("Error updating profile:", err);
-      alert("Failed to update profile");
+    } catch {
+      alert("Failed to update password");
     }
   };
 
-  if (loading) return <p className="text-center mt-4">Loading profile...</p>;
+  if (loading) {
+    return <p className="loading-msg">Loading profile...</p>;
+  }
 
   return (
-    <div className="container mt-5 mechanic-profile">
-      <h2 className="fw-bold text-center mb-4">Mechanic Profile</h2>
-      <div className="profile-card shadow p-4">
-        <div className="mb-3">
-          <label className="form-label">Email (Read Only)</label>
-          <input
-            type="email"
-            className="form-control"
-            value={profile.email}
-            disabled
-          />
+    <main className="profile-page fade-in">
+      <h1 className="profile-header">Mechanic Profile</h1>
+
+      {profile && (
+        <div className="profile-info">
+          <ProfileRow icon={<FiUser />} label="Name" value={profile.name} />
+          <ProfileRow icon={<FiMail />} label="Email" value={profile.email} />
+          {profile.phone && <ProfileRow icon={<FiPhone />} label="Phone" value={profile.phone} />}
+          {profile.location && <ProfileRow icon={<FiMapPin />} label="Location" value={profile.location} />}
+          {profile.specialties && (
+            <ProfileRow icon={<FiTool />} label="Specialties" value={profile.specialties.join(", ")} />
+          )}
+          {/* Add other fields as needed */}
         </div>
-        <div className="mb-3">
-          <label className="form-label">Full Name</label>
-          <input
-            type="text"
-            className="form-control"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">New Password</label>
+      )}
+
+      <section className="change-password-section">
+        <h2>Change Password</h2>
+        <div className="password-input-row">
+          <FiLock className="icon" />
           <input
             type="password"
-            className="form-control"
-            placeholder="Enter new password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter previous password"
+            value={prevPassword}
+            onChange={(e) => setPrevPassword(e.target.value)}
           />
         </div>
-        <button className="btn btn-primary w-100 mt-2" onClick={handleUpdate}>
-          Save Changes
+        <div className="password-input-row">
+          <FiLock className="icon" />
+          <input
+            type="password"
+            placeholder="Enter new password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+        </div>
+        <button
+          onClick={handleUpdatePassword}
+          disabled={!prevPassword || !newPassword}
+          className="update-password-btn"
+        >
+          Update Password
         </button>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
+
+const ProfileRow = ({ icon, label, value }) => (
+  <div className="profile-row">
+    <div className="icon">{icon}</div>
+    <div className="label">{label}</div>
+    <div className="value">{value || "-"}</div>
+  </div>
+);
 
 export default MechanicProfile;
