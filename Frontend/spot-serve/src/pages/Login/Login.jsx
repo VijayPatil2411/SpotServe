@@ -71,7 +71,6 @@ const Login = ({ show, onClose }) => {
           onClose();
           setTimeout(() => {
             navigate("/");
-            // keep reload if you still want it
             setTimeout(() => window.location.reload(), 200);
           }, 100);
         }, 300);
@@ -96,6 +95,7 @@ const Login = ({ show, onClose }) => {
   };
 
   const handleSwapToRegister = () => setExiting(true);
+
   if (!show) return null;
 
   return (
@@ -109,6 +109,17 @@ const Login = ({ show, onClose }) => {
         className={`login-overlay ${exiting ? "overlay-exiting" : ""}`}
         role="dialog"
         aria-modal="true"
+        /* CLOSE MODAL WHEN CLICKING OUTSIDE */
+        onClick={(e) => {
+          if (
+            e.target &&
+            e.target.classList &&
+            (e.target.classList.contains("login-overlay") ||
+              e.target.classList.contains("login-backdrop"))
+          ) {
+            onClose();
+          }
+        }}
       >
         <div className="login-backdrop" aria-hidden />
         <div

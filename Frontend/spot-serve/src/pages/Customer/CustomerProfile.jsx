@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
-import { Form, Button, Spinner, Card, Row, Col, Alert, InputGroup, ProgressBar } from "react-bootstrap";
+import { Form, Spinner, Row, Col } from "react-bootstrap";
+
 import "./CustomerProfile.css";
 
 const CustomerProfile = () => {

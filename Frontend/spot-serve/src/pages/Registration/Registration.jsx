@@ -138,6 +138,18 @@ const Registration = ({ show, onClose }) => {
         className={`reg-overlay ${exiting ? "overlay-exiting" : ""}`}
         role="dialog"
         aria-modal="true"
+        /* <-- ADDED: close when clicking outside (overlay or backdrop) */
+        onClick={(e) => {
+          // Close only when click was on overlay or on the backdrop element
+          if (
+            e.target &&
+            e.target.classList &&
+            (e.target.classList.contains("reg-overlay") ||
+              e.target.classList.contains("reg-backdrop"))
+          ) {
+            onClose();
+          }
+        }}
       >
         <div className="reg-backdrop" aria-hidden />
         <div

@@ -25,29 +25,34 @@ const MyRequests = () => {
   }, []);
 
   useEffect(() => {
-  const filtered = requests
-    .filter((r) =>
-      filterStatus === "ALL"
-        ? true
-        : (r.status || "").toUpperCase() === filterStatus
-    )
-    .filter((r) => {
-      const s = searchTerm.toLowerCase();
-      return (
-        String(r.serviceName || "").toLowerCase().includes(s) ||
-String(r.vehicleId || "").toLowerCase().includes(s) ||
-String(r.location || "").toLowerCase().includes(s)
-
+    const filtered = requests
+      .filter((r) =>
+        filterStatus === "ALL"
+          ? true
+          : (r.status || "").toUpperCase() === filterStatus
+      )
+      .filter((r) => {
+        const s = searchTerm.toLowerCase();
+        return (
+          String(r.serviceName || "")
+            .toLowerCase()
+            .includes(s) ||
+          String(r.vehicleId || "")
+            .toLowerCase()
+            .includes(s) ||
+          String(r.location || "")
+            .toLowerCase()
+            .includes(s)
+        );
+      })
+      .sort((a, b) =>
+        sortBy === "recent"
+          ? new Date(b.createdAt) - new Date(a.createdAt)
+          : new Date(a.createdAt) - new Date(b.createdAt)
       );
-    })
-    .sort((a, b) =>
-      sortBy === "recent"
-        ? new Date(b.createdAt) - new Date(a.createdAt)
-        : new Date(a.createdAt) - new Date(b.createdAt)
-    );
 
-  setFilteredRequests(filtered);
-}, [requests, filterStatus, searchTerm, sortBy]);
+    setFilteredRequests(filtered);
+  }, [requests, filterStatus, searchTerm, sortBy]);
 
   const fetchRequests = async () => {
     try {
@@ -62,8 +67,6 @@ String(r.location || "").toLowerCase().includes(s)
       setLoading(false);
     }
   };
-
-  
 
   const handleCancel = async (id) => {
     const confirmCancel = window.confirm("Cancel this request?");
