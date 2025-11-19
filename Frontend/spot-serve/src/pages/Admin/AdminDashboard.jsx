@@ -15,136 +15,85 @@ const AdminDashboard = () => {
   const [allJobs, setAllJobs] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [panelOpen, setPanelOpen] = useState(false);
-  const [panelView, setPanelView] = useState("list");
+  const [panelView, setPanelView] = useState("list"); // list | mechanics | users
   const [searchInPanel, setSearchInPanel] = useState("");
   const [fetchingPanel, setFetchingPanel] = useState(false);
 
   /** ===========================
-   *  SERVICES STATE
+   *  SERVICES (unchanged)
    ============================= */
   const [services, setServices] = useState([]);
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
   const [serviceForm, setServiceForm] = useState({ id: null, name: "", basePrice: "" });
   const [isEditing, setIsEditing] = useState(false);
-  const [toast, setToast] = useState({ show: false, type: "", msg: "" });
 
   /** ===========================
-   *  TOAST FUNCTION
+   *  USERS / MECHANICS
    ============================= */
+  const [usersList, setUsersList] = useState([]);
+  const [mechanicsList, setMechanicsList] = useState([]);
+
+  /** ===========================
+   *  TOAST
+   ============================= */
+  const [toast, setToast] = useState({ show: false, type: "success", msg: "" });
   const showToast = (msg, type = "success") => {
     setToast({ show: true, msg, type });
     setTimeout(() => setToast({ show: false, msg: "", type: "" }), 2800);
   };
 
   /** ===========================
-   *  SERVICES FUNCTIONS (TOP — to avoid initialization error)
+   *  INITIAL LOAD
    ============================= */
-
-  // Load all services
-  const loadServices = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await api.get("/api/admin/services", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setServices(res.data || []);
-    } catch (err) {
-      console.error("Service load error:", err);
-      setServices([]);
-    }
-  };
-
-  // Open Add Service Modal
-  const openAddService = () => {
-    setServiceForm({ id: null, name: "", basePrice: "" });
-    setIsEditing(false);
-    setServiceModalOpen(true);
-  };
-
-  // Open Edit Service Modal
-  const openEditService = (service) => {
-    setServiceForm({
-      id: service.id,
-      name: service.name,
-      basePrice: service.basePrice,
-    });
-    setIsEditing(true);
-    setServiceModalOpen(true);
-  };
-
-  // Save or Update Service
-  const handleSaveService = async () => {
-    const token = localStorage.getItem("token");
-    if (!serviceForm.name.trim() || !serviceForm.basePrice) {
-      showToast("Please fill all fields", "error");
-      return;
-    }
-
-    try {
-      if (isEditing) {
-        await api.put(`/api/admin/services/${serviceForm.id}`, serviceForm, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        showToast("Service updated successfully!");
-      } else {
-        await api.post("/api/admin/services", serviceForm, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        showToast("Service added successfully!");
-      }
-
-      setServiceModalOpen(false);
-      loadServices();
-    } catch (err) {
-      console.error("Save service error:", err);
-      showToast("Error while saving service", "error");
-    }
-  };
-
-  // Delete Service
-  const handleDeleteService = async (id) => {
-    if (!window.confirm("Are you sure? This will permanently remove the service.")) return;
-
-    try {
-      const token = localStorage.getItem("token");
-      await api.delete(`/api/admin/services/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      showToast("Service deleted successfully!");
-      loadServices();
-    } catch (err) {
-      console.error("Delete service error:", err);
-      showToast("Error deleting service", "error");
-    }
-  };
+  useEffect(() => {
+    loadDashboard();
+    loadAllJobs();
+    loadServices();
+  }, []);
 
   /** ===========================
-   *  EXISTING JOB FUNCTIONS (unchanged)
+   *  HELPERS
    ============================= */
-
   const parseJobs = (d) => {
     if (!d) return [];
     if (Array.isArray(d)) return d;
     const keys = ["data", "jobs", "rows", "items", "result", "list"];
     for (const k of keys) if (Array.isArray(d[k])) return d[k];
-    return [];
+    const arr = Object.values(d).filter((v) => Array.isArray(v));
+    return arr.length ? arr[0] : [];
   };
 
-  const tryAltJobsEndpoints = async (token) => {
-    const alt = ["/admin/jobs", "/jobs"];
-    for (const p of alt) {
-      try {
-        const res = await fetch(`${API_BASE}${p}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const raw = await res.json();
-        const parsed = parseJobs(raw);
-        if (parsed.length) return parsed;
-      } catch {}
+  /** ===========================
+   *  FIX #1 — Load ALL JOBS properly
+   ============================= */
+  const loadAllJobs = async () => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const statuses = ["Completed", "Pending", "Accepted", "Ongoing", "Cancelled"];
+      let combined = [];
+
+      for (let st of statuses) {
+        const res = await fetch(
+          `${API_BASE}/admin/dashboard/jobs?status=${encodeURIComponent(st)}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const raw = await res.json().catch(() => null);
+        const parsed = parseJobs(raw || []);
+        combined = [...combined, ...parsed];
+      }
+
+      setAllJobs(combined);
+    } catch (err) {
+      console.error("loadAllJobs error:", err);
+      setAllJobs([]);
     }
-    return [];
   };
 
+  /** ===========================
+   *  DASHBOARD STATS
+   ============================= */
   const loadDashboard = async () => {
     setLoading(true);
     const token = localStorage.getItem("token");
@@ -156,50 +105,43 @@ const AdminDashboard = () => {
       setStats(data || {});
     } catch {
       setStats({});
-    }
-    setLoading(false);
-  };
-
-  const loadAllJobs = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const res = await fetch(`${API_BASE}/admin/dashboard/jobs`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const raw = await res.json();
-      let parsed = parseJobs(raw);
-      if (!parsed.length) parsed = await tryAltJobsEndpoints(token);
-      setAllJobs(parsed);
-    } catch {
-      setAllJobs([]);
+    } finally {
+      setLoading(false);
     }
   };
 
+  /** ===========================
+   *  JOB LIST BY STATUS
+   ============================= */
   const fetchJobsByStatus = async (status) => {
     setSelectedStatus(status);
-    setPanelOpen(true);
-    setPanelView("list");
-    setSearchInPanel("");
     setFetchingPanel(true);
+    setPanelView("list");
+    setPanelOpen(true);
+    setSearchInPanel("");
 
     const token = localStorage.getItem("token");
-    try {
-      const res = await fetch(`${API_BASE}/admin/dashboard/jobs?status=${status}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const raw = await res.json();
-      let parsed = parseJobs(raw);
-      if (!parsed.length) {
-        parsed = allJobs.filter((j) => j.status?.toUpperCase() === status);
-      }
-      setJobs(parsed);
-    } catch {
-      setJobs([]);
-    }
 
-    setFetchingPanel(false);
+    try {
+      const res = await fetch(
+        `${API_BASE}/admin/dashboard/jobs?status=${encodeURIComponent(status)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const raw = await res.json();
+      const parsed = parseJobs(raw);
+
+      if (parsed.length) setJobs(parsed);
+      else setJobs(allJobs.filter((j) => (j.status || "").toUpperCase() === status));
+    } catch {
+      setJobs(allJobs.filter((j) => (j.status || "").toUpperCase() === status));
+    } finally {
+      setFetchingPanel(false);
+    }
   };
 
+  /** ===========================
+   *  OPEN TOTAL PANEL (uses full allJobs)
+   ============================= */
   const openTotalPanel = () => {
     setSelectedStatus("TOTAL");
     setPanelOpen(true);
@@ -209,27 +151,134 @@ const AdminDashboard = () => {
   };
 
   /** ===========================
-   *  useEffect (AFTER all functions!)
+   *  SERVICES FUNCTIONS
    ============================= */
-  useEffect(() => {
-    loadDashboard();
-    loadAllJobs();
-    loadServices(); // NOW safe
-  }, []);
+  const loadServices = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await api.get("/api/admin/services", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setServices(res.data || []);
+    } catch {
+      setServices([]);
+    }
+  };
+
+  const openAddService = () => {
+    setServiceForm({ id: null, name: "", basePrice: "" });
+    setIsEditing(false);
+    setServiceModalOpen(true);
+  };
+
+  const openEditService = (service) => {
+    setServiceForm({
+      id: service.id,
+      name: service.name,
+      basePrice: service.basePrice,
+    });
+    setIsEditing(true);
+    setServiceModalOpen(true);
+  };
+
+  const handleSaveService = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!serviceForm.name || !serviceForm.basePrice) {
+      showToast("Fill all fields", "error");
+      return;
+    }
+
+    try {
+      if (isEditing) {
+        await api.put(`/api/admin/services/${serviceForm.id}`, serviceForm, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        showToast("Service updated!");
+      } else {
+        await api.post("/api/admin/services", serviceForm, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        showToast("Service added!");
+      }
+
+      setServiceModalOpen(false);
+      loadServices();
+    } catch {
+      showToast("Error saving", "error");
+    }
+  };
+
+  const handleDeleteService = async (id) => {
+    if (!window.confirm("Delete this service?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      await api.delete(`/api/admin/services/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      showToast("Service deleted");
+      loadServices();
+    } catch {
+      showToast("Delete error", "error");
+    }
+  };
 
   /** ===========================
-   *  RENDER
+   *  USERS & MECHANICS
    ============================= */
+  const loadUsers = async () => {
+    setFetchingPanel(true);
+    try {
+      const res = await fetch(`${API_BASE}/admin/users`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      const data = await res.json();
+      setUsersList(Array.isArray(data) ? data : []);
+    } catch {
+      setUsersList([]);
+    } finally {
+      setFetchingPanel(false);
+    }
+  };
 
+  /** FIX #2 — ALWAYS load mechanics when opening mechanics tab */
+  const loadMechanics = async () => {
+    setFetchingPanel(true);
+    try {
+      const res = await fetch(`${API_BASE}/admin/mechanics`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      const data = await res.json();
+      setMechanicsList(Array.isArray(data) ? data : []);
+    } catch {
+      setMechanicsList([]);
+    } finally {
+      setFetchingPanel(false);
+    }
+  };
+
+  /** Summary of jobs per mechanic */
   const mechanicsSummary = useMemo(() => {
     const map = {};
     allJobs.forEach((j) => {
       const name = j.mechanicName || "Unassigned";
       map[name] = map[name] || { name, count: 0, accepted: 0, ongoing: 0, completed: 0 };
       map[name].count++;
+      const st = (j.status || "").toUpperCase();
+      if (st === "ACCEPTED") map[name].accepted++;
+      if (st === "ONGOING") map[name].ongoing++;
+      if (st === "COMPLETED") map[name].completed++;
     });
     return Object.values(map);
   }, [allJobs]);
+
+  const niceDate = (d) => (d ? new Date(d).toLocaleString() : "-");
+
+  if (loading) return <p className="text-center mt-5">Loading dashboard...</p>;
+
+  const topMechanic =
+    mechanicsSummary[0] ? `${mechanicsSummary[0].name} (${mechanicsSummary[0].count})` : "-";
 
   const cards = [
     { key: "TOTAL", title: "Total Requests", value: stats.total ?? 0, icon: "📦", onClick: openTotalPanel },
@@ -238,17 +287,55 @@ const AdminDashboard = () => {
     { key: "ACCEPTED", title: "Accepted", value: stats.accepted ?? 0, icon: "🧰", onClick: () => fetchJobsByStatus("ACCEPTED") },
     { key: "ONGOING", title: "Ongoing", value: stats.ongoing ?? 0, icon: "⚙️", onClick: () => fetchJobsByStatus("ONGOING") },
     { key: "CANCELLED", title: "Cancelled", value: stats.cancelled ?? 0, icon: "❌", onClick: () => fetchJobsByStatus("CANCELLED") },
-    { key: "USERS", title: "Total Users", value: stats.totalUsers ?? 0, icon: "👥" },
-    { key: "MECHS", title: "Total Mechanics", value: stats.totalMechanics ?? 0, icon: "🔧" },
+
+    /** Mechanics card → ALWAYS loads mechanics */
+    {
+      key: "MECHS",
+      title: "Total Mechanics",
+      value: stats.totalMechanics ?? mechanicsSummary.length ?? 0,
+      icon: "🔧",
+      onClick: () => {
+        setPanelView("mechanics");
+        setPanelOpen(true);
+        loadMechanics();
+      },
+    },
+
+    {
+      key: "USERS",
+      title: "Total Users",
+      value: stats.totalUsers ?? "-",
+      icon: "👥",
+      onClick: () => {
+        setPanelView("users");
+        setPanelOpen(true);
+        loadUsers();
+      },
+    },
+
+    {
+      key: "TOP_MECH",
+      title: "Top Mechanic",
+      value: topMechanic,
+      icon: "⭐",
+      onClick: () => {
+        setPanelView("mechanics");
+        setPanelOpen(true);
+        loadMechanics();
+      },
+    },
   ];
 
+  /** ===========================
+   *  RENDER
+   ============================= */
   return (
     <div className="admin-dashboard container mt-4">
       {toast.show && <div className={`admin-toast toast-${toast.type}`}>{toast.msg}</div>}
 
       <h2 className="fw-bold text-center mb-3">Admin Dashboard</h2>
 
-      {/* KPI Cards */}
+      {/* KPI cards */}
       <div className="cards-row">
         {cards.map((c) => (
           <div key={c.key} className="card-tile" onClick={c.onClick}>
@@ -257,20 +344,20 @@ const AdminDashboard = () => {
               <div className="tile-title">{c.title}</div>
             </div>
             <div className="tile-value">{c.value}</div>
+            <div className="tile-action">View <span className="chev">›</span></div>
           </div>
         ))}
       </div>
 
       {/* Summary strip */}
       <div className="summary-strip">
-        <div>Total Mechanics: {mechanicsSummary.length}</div>
-        <div>Total Jobs: {allJobs.length}</div>
-        <div>Total Users: {stats.totalUsers}</div>
+        <div>Total Mechanics: <strong>{stats.totalMechanics ?? mechanicsSummary.length}</strong></div>
+        <div>Total Jobs: <strong>{stats.total ?? allJobs.length}</strong></div>
+        <div>Total Users: <strong>{stats.totalUsers ?? "-"}</strong></div>
+        <div>Last Refresh: <strong>{new Date().toLocaleString()}</strong></div>
       </div>
 
-      {/* ================================
-          SERVICES SECTION (NEW)
-      ================================= */}
+      {/* SERVICES SECTION (unchanged) */}
       <div className="services-section mt-4">
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h4 className="fw-bold">Services</h4>
@@ -296,8 +383,12 @@ const AdminDashboard = () => {
                   <td>{s.name}</td>
                   <td>₹{s.basePrice}</td>
                   <td>
-                    <button className="btn btn-sm btn-outline-primary me-2" onClick={() => openEditService(s)}>Edit</button>
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteService(s.id)}>Delete</button>
+                    <button className="btn btn-sm btn-outline-primary me-2" onClick={() => openEditService(s)}>
+                      Edit
+                    </button>
+                    <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteService(s.id)}>
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))
@@ -306,13 +397,13 @@ const AdminDashboard = () => {
         </table>
       </div>
 
-      {/* ========================
-           SERVICE MODAL
-      ========================= */}
+      {/* Service modal */}
       {serviceModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-card">
-            <h5 className="fw-bold mb-3 text-center">{isEditing ? "Edit Service" : "Add Service"}</h5>
+        <div className="modal-overlay" onClick={() => setServiceModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h5 className="fw-bold mb-3 text-center">
+              {isEditing ? "Edit Service" : "Add Service"}
+            </h5>
 
             <input
               className="form-control mb-3"
@@ -339,6 +430,170 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* PANEL (Jobs / Mechanics / Users) */}
+      {panelOpen && (
+        <div className="panel-overlay" onClick={() => setPanelOpen(false)}>
+          <div className="panel" onClick={(e) => e.stopPropagation()}>
+            <div className="panel-header">
+              <h4>
+                {panelView === "list" &&
+                  (selectedStatus === "TOTAL" ? "All Requests" : `${selectedStatus} Jobs`)}
+                {panelView === "mechanics" && "Mechanics"}
+                {panelView === "users" && "Users"}
+              </h4>
+
+              <div className="panel-controls">
+                {panelView === "list" && (
+                  <input
+                    className="panel-search"
+                    placeholder="Search jobs…"
+                    value={searchInPanel}
+                    onChange={(e) => setSearchInPanel(e.target.value)}
+                  />
+                )}
+
+                {/* Tabs */}
+                <div className="view-tabs">
+                  <button
+                    className={`tab-btn ${panelView === "list" ? "active" : ""}`}
+                    onClick={() => setPanelView("list")}
+                  >
+                    List
+                  </button>
+
+                  <button
+                    className={`tab-btn ${panelView === "mechanics" ? "active" : ""}`}
+                    onClick={() => {
+                      setPanelView("mechanics");
+                      loadMechanics();
+                    }}
+                  >
+                    Mechanics
+                  </button>
+
+                  <button
+                    className={`tab-btn ${panelView === "users" ? "active" : ""}`}
+                    onClick={() => {
+                      setPanelView("users");
+                      loadUsers();
+                    }}
+                  >
+                    Users
+                  </button>
+                </div>
+
+                <button className="close-btn" onClick={() => setPanelOpen(false)}>✕</button>
+              </div>
+            </div>
+
+            <div className="panel-body">
+              {fetchingPanel ? (
+                <div className="panel-loading">Loading…</div>
+              ) : panelView === "list" ? (
+                /* JOB TABLE */
+                <table className="table table-hover table-admin">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>ID</th>
+                      <th>Customer</th>
+                      <th>Service</th>
+                      <th>Mechanic</th>
+                      <th>Status</th>
+                      <th>Location</th>
+                      <th>Created</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {jobs.length === 0 ? (
+                      <tr><td colSpan="8" className="text-center text-muted">No jobs found</td></tr>
+                    ) : (
+                      jobs.map((job, i) => (
+                        <tr key={job.id}>
+                          <td>{i + 1}</td>
+                          <td>{job.id}</td>
+                          <td>{job.customerName}</td>
+                          <td>{job.serviceName}</td>
+                          <td>{job.mechanicName || "Unassigned"}</td>
+                          <td><span className={`badge status-${(job.status || "").toLowerCase()}`}>{job.status}</span></td>
+                          <td>{job.location}</td>
+                          <td>{niceDate(job.createdAt)}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              ) : panelView === "mechanics" ? (
+                /* MECHANICS TABLE */
+                <table className="table table-admin">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Shop</th>
+                      <th>Total Jobs</th>
+                      <th>Completed</th>
+                      <th>Ongoing</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {mechanicsList.length === 0 ? (
+                      <tr><td colSpan="8" className="text-center text-muted">No mechanics found</td></tr>
+                    ) : (
+                      mechanicsList.map((m, i) => (
+                        <tr key={m.id}>
+                          <td>{i + 1}</td>
+                          <td>{m.name}</td>
+                          <td>{m.email}</td>
+                          <td>{m.phone}</td>
+                          <td>{m.shopName || "-"}</td>
+                          <td>{m.totalJobs}</td>
+                          <td>{m.completedJobs}</td>
+                          <td>{m.ongoingJobs}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              ) : (
+                /* USERS TABLE */
+                <table className="table table-admin">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Joined</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usersList.length === 0 ? (
+                      <tr><td colSpan="6" className="text-center text-muted">No users found</td></tr>
+                    ) : (
+                      usersList.map((u, i) => (
+                        <tr key={u.id}>
+                          <td>{i + 1}</td>
+                          <td>{u.id}</td>
+                          <td>{u.name}</td>
+                          <td>{u.email}</td>
+                          <td>{u.phone || "-"}</td>
+                          <td>{niceDate(u.createdAt)}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

@@ -15,9 +15,14 @@ const serviceIcons = {
   "General Inspection": "https://cdn-icons-png.flaticon.com/512/190/190411.png",
 };
 
-const ServiceCards = ({ services }) => {
+const ServiceCards = ({ services, user }) => {
   const [selectedService, setSelectedService] = useState(null);
-  const user = JSON.parse(localStorage.getItem("user"));
+  const [toast, setToast] = useState({ show: false, msg: "", type: "" });
+
+  const showToast = (msg, type = "error") => {
+    setToast({ show: true, msg, type });
+    setTimeout(() => setToast({ show: false, msg: "", type: "" }), 2500);
+  };
 
   if (!services || services.length === 0) {
     return <p className="text-center text-muted mt-3">No services available.</p>;
@@ -25,6 +30,14 @@ const ServiceCards = ({ services }) => {
 
   return (
     <div className="container mt-5">
+
+      {/* Toast */}
+      {toast.show && (
+        <div className={`home-toast toast-${toast.type}`}>
+          {toast.msg}
+        </div>
+      )}
+
       <div className="row justify-content-center">
         {services.map((service) => (
           <div
@@ -33,22 +46,21 @@ const ServiceCards = ({ services }) => {
           >
             <div className="card service-card shadow-sm text-center p-3 border-0">
               <img
-                src={
-                  serviceIcons[service.name] ||
-                  "https://cdn-icons-png.flaticon.com/512/1995/1995504.png"
-                }
+                src={serviceIcons[service.name] || serviceIcons["Battery Jumpstart"]}
                 alt={service.name}
                 className="service-icon mb-3"
               />
+
               <h5 className="fw-semibold mb-2">{service.name}</h5>
               <p className="text-muted mb-3">
                 Base Price: ₹{service.base_price || service.basePrice}
               </p>
+
               <button
                 className="btn btn-primary"
                 onClick={() => {
                   if (!user) {
-                    alert("Please login to book a service.");
+                    showToast("Please login to book a service!", "error");
                     return;
                   }
                   setSelectedService(service);
