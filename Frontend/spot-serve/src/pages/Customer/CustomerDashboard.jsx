@@ -3,20 +3,43 @@ import { getAllServices } from "../../services/customerService";
 import ServiceCards from "../../components/ServiceCards";
 import "./CustomerDashboard.css";
 
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080/api/customer";
+const API_BASE =
+  process.env.REACT_APP_API_BASE || "http://localhost:8080/api/customer";
 
 const CustomerDashboard = () => {
   const [services, setServices] = useState([]);
   const [jobs, setJobs] = useState([]);
+  const [user, setUser] = useState(null); // ✅ NEW
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const token = localStorage.getItem("token");
 
-  // Data fetching functions
+  /* ============================
+     FETCH LOGGED-IN USER
+  ============================ */
+  const fetchUser = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch user", e);
+    }
+  };
+
+  /* ============================
+     FETCH SERVICES
+  ============================ */
   const fetchServices = async () => {
     setLoading(true);
     setError(null);
+
     try {
       const data = await getAllServices();
       setServices(data || []);
@@ -27,21 +50,29 @@ const CustomerDashboard = () => {
     }
   };
 
+  /* ============================
+     FETCH USER JOBS
+  ============================ */
   const fetchJobs = async () => {
     try {
       const res = await fetch(`${API_BASE}/jobs/my`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to fetch jobs");
-      const data = await res.json();
-      setJobs(data || []);
+
+      if (res.ok) {
+        const data = await res.json();
+        setJobs(data || []);
+      }
     } catch (err) {
-      // Just log; don't show error toast for jobs
-      // Optionally set an error state here if needed
+      console.error("Failed to fetch jobs", err);
     }
   };
 
+  /* ============================
+     LOAD ALL AT PAGE LOAD
+  ============================ */
   useEffect(() => {
+    fetchUser();
     fetchServices();
     fetchJobs();
     // eslint-disable-next-line
@@ -49,7 +80,7 @@ const CustomerDashboard = () => {
 
   const handlePayNow = (url) => {
     if (url) window.open(url, "_blank");
-    else alert("Payment link not available yet. Please wait for confirmation.");
+    else alert("Payment link not available yet.");
   };
 
   return (
@@ -59,39 +90,52 @@ const CustomerDashboard = () => {
         <p className="dash-desc">
           Select a service to get quick assistance from nearby mechanics.
         </p>
+
         {loading && (
           <div className="dash-loading">
             <span className="dash-spinner"></span>
             <span>Loading services...</span>
           </div>
         )}
+
         {error && <div className="dash-alert">{error}</div>}
-        {!loading && !error && <ServiceCards services={services} />}
+
+        {/* 🔥 FIX: Now passing user → required for vehicle loading */}
+        {!loading && !error && <ServiceCards services={services} user={user} />}
       </section>
 
       <section className="dash-section">
         <h3 className="dash-title dash-title-small">My Active Requests</h3>
+
         {jobs.length === 0 ? (
-          <p className="dash-empty">You currently have no active or past requests.</p>
+          <p className="dash-empty">You currently have no active requests.</p>
         ) : (
           <div className="dash-jobs-grid">
             {jobs.map((job) => (
               <div key={job.id} className="dash-job-card">
-                <h4 className="dash-job-title">{job.serviceName || `Service #${job.serviceId}`}</h4>
+                <h4 className="dash-job-title">
+                  {job.serviceName || `Service #${job.serviceId}`}
+                </h4>
+
                 <div className="dash-job-info">
-                  <span className={`dash-status dash-status-${job.status?.toLowerCase()}`}>
+                  <span
+                    className={`dash-status dash-status-${job.status?.toLowerCase()}`}
+                  >
                     {job.status === "PAYMENT_PENDING"
                       ? "Awaiting Payment"
                       : job.status}
                   </span>
+
                   <span>
                     <strong>Location:</strong> {job.location || "N/A"}
                   </span>
+
                   <span>
                     <strong>Description:</strong>{" "}
                     {job.description || "No description"}
                   </span>
                 </div>
+
                 {job.status === "PAYMENT_PENDING" && job.paymentUrl && (
                   <button
                     className="dash-pay-btn"

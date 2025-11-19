@@ -7,33 +7,39 @@ const BookRequestModal = ({ show, onClose, service, user }) => {
   const [vehicleId, setVehicleId] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [location, setLocation] = useState("");
-  const [coords, setCoords] = useState({ lat: null, lng: null });
+  const [location, setLocation] = useState({ lat: "", lng: "" });
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
-  const [closing, setClosing] = useState(false); // ✅ New for smooth fade-out
+  const [closing, setClosing] = useState(false);
 
+  // Fetch vehicles correctly
   useEffect(() => {
     if (user && show) {
+      const token = localStorage.getItem("token");
+
       api
-        .get(`/api/customer/${user.id}/vehicles`)
-        .then((res) => setVehicles(res.data))
+        .get(`/api/customer/${user.id}/vehicles`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => {
+          setVehicles(res.data || []);
+        })
         .catch((err) => console.error("Error fetching vehicles:", err));
     }
   }, [user, show]);
 
   const detectLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation not supported on this browser.");
+      showToast("Geolocation not supported!", "error");
       return;
     }
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
-        setCoords({ lat, lng });
-        setLocation(`${lat}, ${lng}`);
+        setLocation({ lat, lng });
       },
-      () => alert("Unable to detect location.")
+      () => showToast("Unable to detect location!", "error")
     );
   };
 
@@ -45,8 +51,8 @@ const BookRequestModal = ({ show, onClose, service, user }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!vehicleId || !location) {
-      alert("Please select a vehicle and detect location before submitting.");
+    if (!vehicleId || !location.lat || !location.lng) {
+      showToast("Select vehicle & location!", "error");
       return;
     }
 
@@ -54,34 +60,36 @@ const BookRequestModal = ({ show, onClose, service, user }) => {
       const payload = {
         customerId: user.id,
         serviceId: service.id,
-        vehicleId,
+        vehicleId: vehicleId,
         description,
         imageUrl,
-        location,
-        pickupLat: coords.lat,
-        pickupLng: coords.lng,
+        location: `${location.lat}, ${location.lng}`,
+        pickupLat: location.lat,
+        pickupLng: location.lng,
       };
 
-      await api.post("/api/customer/jobs", payload);
+      await api.post("/api/customer/jobs", payload, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
-      // ✅ Show toast first
-      showToast("✅ Service request placed successfully!", "success");
+      showToast("Request placed successfully!", "success");
 
-      // ✅ Start smooth close animation
       setClosing(true);
       setTimeout(() => {
         setClosing(false);
         onClose();
-      }, 800); // duration matches CSS fade
-    } catch (error) {
-      console.error("Error creating job:", error);
-      showToast("❌ Failed to place service request.", "error");
+      }, 800);
+    } catch (err) {
+      console.error("Job creation error:", err);
+      showToast("Failed to place service request!", "error");
     }
   };
 
   return (
     <>
-      {/* ✅ Toast Display */}
+      {/* Toast */}
       {toast.show && (
         <div
           style={{
@@ -95,22 +103,21 @@ const BookRequestModal = ({ show, onClose, service, user }) => {
             zIndex: 2000,
             boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
             fontWeight: "500",
-            transition: "opacity 0.4s ease",
-            opacity: toast.show ? 1 : 0,
           }}
         >
           {toast.message}
         </div>
       )}
 
-      {/* ✅ Modal with smooth fade-out */}
       <div className={`custom-modal-wrapper ${closing ? "fade-out" : ""}`}>
         <Modal show={show} onHide={onClose} centered>
           <Modal.Header closeButton>
             <Modal.Title>Book {service?.name}</Modal.Title>
           </Modal.Header>
+
           <Modal.Body>
             <Form onSubmit={handleSubmit}>
+              {/* VEHICLE DROPDOWN */}
               <Form.Group className="mb-3">
                 <Form.Label>Select Vehicle</Form.Label>
                 <Form.Select
@@ -121,41 +128,48 @@ const BookRequestModal = ({ show, onClose, service, user }) => {
                   <option value="">-- Select Vehicle --</option>
                   {vehicles.map((v) => (
                     <option key={v.id} value={v.id}>
-                      {v.make} {v.model} ({v.plate_no})
+                      {v.make} {v.model} ({v.plateNo})
                     </option>
                   ))}
                 </Form.Select>
               </Form.Group>
 
+              {/* DESCRIPTION */}
               <Form.Group className="mb-3">
-                <Form.Label>Problem Description</Form.Label>
+                <Form.Label>Description</Form.Label>
                 <Form.Control
                   as="textarea"
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe the issue briefly"
                   required
                 />
               </Form.Group>
 
+              {/* IMAGE URL */}
               <Form.Group className="mb-3">
                 <Form.Label>Image URL (optional)</Form.Label>
                 <Form.Control
                   type="text"
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="Paste image link (optional)"
                 />
               </Form.Group>
 
+              {/* LOCATION */}
               <Form.Group className="mb-3">
                 <Form.Label>Location</Form.Label>
                 <div className="d-flex gap-2">
                   <Form.Control
                     type="text"
-                    value={location}
-                    placeholder="Click Detect to get your location"
+                    value={location.lat}
+                    placeholder="Latitude"
+                    readOnly
+                  />
+                  <Form.Control
+                    type="text"
+                    value={location.lng}
+                    placeholder="Longitude"
                     readOnly
                   />
                   <Button variant="secondary" onClick={detectLocation}>
@@ -164,7 +178,7 @@ const BookRequestModal = ({ show, onClose, service, user }) => {
                 </div>
               </Form.Group>
 
-              <Button type="submit" variant="primary" className="w-100">
+              <Button type="submit" className="w-100" variant="primary">
                 Submit Request
               </Button>
             </Form>

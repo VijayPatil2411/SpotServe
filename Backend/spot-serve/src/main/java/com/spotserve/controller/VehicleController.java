@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -22,9 +23,11 @@ public class VehicleController {
     @Autowired
     private UserRepository userRepository;
 
-    // ✅ 1. Get all vehicles for the logged-in user (used in Add Vehicle page)
-    @GetMapping("/vehicles")
-    public ResponseEntity<List<Vehicle>> getUserVehicles(@AuthenticationPrincipal UserDetails userDetails) {
+    // ✅ 1. Get vehicles for logged-in user (Add Vehicle page + Book Request)
+    @GetMapping("/customer/vehicles")
+    public ResponseEntity<List<Vehicle>> getVehiclesForLoggedUser(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
         if (userDetails == null)
             return ResponseEntity.status(401).build();
 
@@ -36,17 +39,35 @@ public class VehicleController {
         return ResponseEntity.ok(vehicles);
     }
 
-    // ✅ 2. Get vehicles by customerId (used in BookRequestModal.jsx)
+    // (Old endpoint kept for backward support)
+    @GetMapping("/vehicles")
+    public ResponseEntity<List<Vehicle>> getUserVehicles(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        if (userDetails == null)
+            return ResponseEntity.status(401).build();
+
+        User user = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        if (user == null)
+            return ResponseEntity.notFound().build();
+
+        List<Vehicle> vehicles = vehicleRepository.findByUserId(user.getId());
+        return ResponseEntity.ok(vehicles);
+    }
+
+    // (Used only if customerId is directly provided)
     @GetMapping("/customer/{customerId}/vehicles")
     public ResponseEntity<List<Vehicle>> getCustomerVehicles(@PathVariable Long customerId) {
         List<Vehicle> vehicles = vehicleRepository.findByUserId(customerId);
         return ResponseEntity.ok(vehicles);
     }
 
-    // ✅ 3. Add new vehicle for logged-in user
+    // ✅ Add new vehicle for logged-in user
     @PostMapping("/vehicles")
-    public ResponseEntity<?> addVehicle(@AuthenticationPrincipal UserDetails userDetails,
-                                        @RequestBody Vehicle vehicle) {
+    public ResponseEntity<?> addVehicle(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody Vehicle vehicle) {
+
         if (userDetails == null)
             return ResponseEntity.status(401).body("Unauthorized");
 
@@ -56,6 +77,7 @@ public class VehicleController {
 
         vehicle.setUserId(user.getId());
         vehicleRepository.save(vehicle);
+
         return ResponseEntity.ok("Vehicle added successfully!");
     }
 }

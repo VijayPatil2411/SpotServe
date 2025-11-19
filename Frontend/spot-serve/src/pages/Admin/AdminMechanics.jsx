@@ -6,6 +6,7 @@ const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080/api/ad
 const AdminMechanics = () => {
   const [mechanics, setMechanics] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
+
   const [newMechanic, setNewMechanic] = useState({
     name: "",
     email: "",
@@ -13,15 +14,24 @@ const AdminMechanics = () => {
     phone: "",
     latitude: "",
     longitude: "",
+    shopName: "",
+    address: "",
   });
 
   const [loading, setLoading] = useState(false);
+
+  /** ======== TOAST STATE ========= **/
+  const [toast, setToast] = useState({ show: false, type: "", msg: "" });
+
+  const showToast = (msg, type = "success") => {
+    setToast({ show: true, type, msg });
+    setTimeout(() => setToast({ show: false, type: "", msg: "" }), 2500);
+  };
 
   useEffect(() => {
     fetchMechanics();
   }, []);
 
-  // close modal on Escape key
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") setShowAddModal(false);
@@ -33,15 +43,17 @@ const AdminMechanics = () => {
   const fetchMechanics = async () => {
     setLoading(true);
     const token = localStorage.getItem("token");
+
     try {
       const res = await fetch(API_BASE, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to fetch mechanics");
+
       const data = await res.json();
-      setMechanics(data);
+      setMechanics(data || []);
     } catch (err) {
       console.error("Error:", err);
+      showToast("Failed to load mechanics", "error");
     } finally {
       setLoading(false);
     }
@@ -50,42 +62,45 @@ const AdminMechanics = () => {
   const handleDeleteMechanic = async (id, name) => {
     if (!window.confirm(`⚠️ Are you sure you want to remove ${name}?`)) return;
     const token = localStorage.getItem("token");
+
     try {
       const res = await fetch(`${API_BASE}/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to delete mechanic");
+
       const data = await res.json();
-      alert(`✅ ${data.message}`);
+      showToast(data.message || "Deleted!", "success");
       fetchMechanics();
     } catch (err) {
-      console.error("Error:", err);
-      alert("❌ Failed to delete mechanic");
+      console.error(err);
+      showToast("Failed to delete mechanic", "error");
     }
   };
 
   const detectLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setNewMechanic({
-            ...newMechanic,
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-          });
-          alert("📍 Location detected successfully!");
-        },
-        () => alert("Could not get location.")
-      );
-    } else {
-      alert("Geolocation not supported by browser.");
+    if (!navigator.geolocation) {
+      showToast("Browser does not support geolocation", "error");
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setNewMechanic((prev) => ({
+          ...prev,
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        }));
+        showToast("📍 Location detected!", "success");
+      },
+      () => showToast("Unable to detect location", "error")
+    );
   };
 
   const handleAddMechanic = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
+
     try {
       const res = await fetch(API_BASE, {
         method: "POST",
@@ -95,25 +110,46 @@ const AdminMechanics = () => {
         },
         body: JSON.stringify(newMechanic),
       });
-      if (!res.ok) throw new Error("Failed to add mechanic");
-      alert("✅ Mechanic added successfully!");
+
+      if (!res.ok) throw new Error("Add mechanic failed");
+
+      showToast("Mechanic added successfully!", "success");
       setShowAddModal(false);
-      setNewMechanic({ name: "", email: "", password: "", phone: "", latitude: "", longitude: "" });
+
+      setNewMechanic({
+        name: "",
+        email: "",
+        password: "",
+        phone: "",
+        latitude: "",
+        longitude: "",
+        shopName: "",
+        address: "",
+      });
+
       fetchMechanics();
     } catch (err) {
-      console.error("Error:", err);
-      alert("Error adding mechanic");
+      console.error(err);
+      showToast("Failed to add mechanic", "error");
     }
   };
 
   const getCompletionRate = (mech) => {
     const total = mech.totalJobs || mech.completedJobs + mech.ongoingJobs;
-    if (total === 0) return "0%";
+    if (!total) return "0%";
     return `${Math.round((mech.completedJobs / total) * 100)}%`;
   };
 
   return (
     <div className="admin-mechanics container py-4">
+
+      {/* TOAST */}
+      {toast.show && (
+        <div className={`toast-notification toast-${toast.type}`}>
+          {toast.msg}
+        </div>
+      )}
+
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="fw-bold text-dark page-title">👨‍🔧 Manage Mechanics</h2>
         <button className="btn btn-primary stylish-btn" onClick={() => setShowAddModal(true)}>
@@ -122,7 +158,9 @@ const AdminMechanics = () => {
       </div>
 
       {loading && <p className="text-center text-muted">Loading mechanics...</p>}
-      {!loading && mechanics.length === 0 && <p className="text-muted text-center">No mechanics found.</p>}
+      {!loading && mechanics.length === 0 && (
+        <p className="text-muted text-center">No mechanics found.</p>
+      )}
 
       <div className="row">
         {mechanics.map((mech) => (
@@ -130,12 +168,17 @@ const AdminMechanics = () => {
             <div className="mechanic-card shadow-hover">
               <div className="card-header">
                 <h5 className="fw-bold text-dark mb-1">{mech.name}</h5>
-                <p className="text-muted small mb-2">{mech.email}</p>
+                <p className="text-muted small">{mech.email}</p>
               </div>
 
               <div className="card-body">
                 <p className="m-0"><strong>📞 Phone:</strong> {mech.phone || "N/A"}</p>
-                <p className="m-0"><strong>📍 Location:</strong> 
+
+                <p className="m-0"><strong>🏪 Shop:</strong> {mech.shopName || "—"}</p>
+                <p className="m-0"><strong>📍 Address:</strong> {mech.address || "—"}</p>
+
+                <p className="m-0">
+                  <strong>📌 Location:</strong>{" "}
                   {mech.latitude && mech.longitude
                     ? `${mech.latitude.toFixed(3)}, ${mech.longitude.toFixed(3)}`
                     : "Not set"}
@@ -146,23 +189,27 @@ const AdminMechanics = () => {
 
               <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <span className="badge bg-success me-1">✅ {mech.completedJobs || 0}</span>
+                  <span className="badge bg-success me-1">✔ {mech.completedJobs || 0}</span>
                   <span className="badge bg-warning text-dark">🔧 {mech.ongoingJobs || 0}</span>
                 </div>
                 <button
                   className="btn btn-danger btn-sm delete-btn"
                   onClick={() => handleDeleteMechanic(mech.id, mech.name)}
                 >
-                  🗑️ Remove
+                  🗑 Remove
                 </button>
               </div>
 
               <div className="mt-3 text-center mechanic-stats">
-                <p className="m-0 small text-muted">
-                  Completion Rate: <strong className="text-success">{getCompletionRate(mech)}</strong>
+                <p className="small text-muted">
+                  Completion Rate:{" "}
+                  <strong className="text-success">{getCompletionRate(mech)}</strong>
                 </p>
-                <p className="m-0 small text-muted">
-                  ⭐ Rating: <span className="text-warning">{mech.rating ? mech.rating.toFixed(1) : "—"}</span>
+                <p className="small text-muted">
+                  ⭐ Rating:{" "}
+                  <span className="text-warning">
+                    {mech.rating ? mech.rating.toFixed(1) : "—"}
+                  </span>
                 </p>
               </div>
             </div>
@@ -170,43 +217,95 @@ const AdminMechanics = () => {
         ))}
       </div>
 
-      {/* ✅ Add Mechanic Modal */}
+      {/* ADD MECHANIC MODAL */}
       {showAddModal && (
         <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
           <div className="modal-card add-mechanic-card animate-modal" onClick={(e) => e.stopPropagation()}>
-            
             <h4 className="fw-bold mb-3 text-center">➕ Add New Mechanic</h4>
+
             <form onSubmit={handleAddMechanic}>
-              <input type="text" className="form-control mb-2" placeholder="Full Name"
+              <input
+                type="text"
+                className="form-control mb-2"
+                placeholder="Full Name"
                 value={newMechanic.name}
-                onChange={(e) => setNewMechanic({ ...newMechanic, name: e.target.value })} required />
-              <input type="email" className="form-control mb-2" placeholder="Email"
+                onChange={(e) => setNewMechanic({ ...newMechanic, name: e.target.value })}
+                required
+              />
+
+              <input
+                type="email"
+                className="form-control mb-2"
+                placeholder="Email"
                 value={newMechanic.email}
-                onChange={(e) => setNewMechanic({ ...newMechanic, email: e.target.value })} required />
-              <input type="password" className="form-control mb-2" placeholder="Password"
+                onChange={(e) => setNewMechanic({ ...newMechanic, email: e.target.value })}
+                required
+              />
+
+              <input
+                type="password"
+                className="form-control mb-2"
+                placeholder="Password"
                 value={newMechanic.password}
-                onChange={(e) => setNewMechanic({ ...newMechanic, password: e.target.value })} required />
-              <input type="text" className="form-control mb-2" placeholder="Phone"
+                onChange={(e) => setNewMechanic({ ...newMechanic, password: e.target.value })}
+                required
+              />
+
+              <input
+                type="text"
+                className="form-control mb-2"
+                placeholder="Phone"
                 value={newMechanic.phone}
-                onChange={(e) => setNewMechanic({ ...newMechanic, phone: e.target.value })} />
+                onChange={(e) => setNewMechanic({ ...newMechanic, phone: e.target.value })}
+              />
+
+              <input
+                type="text"
+                className="form-control mb-2"
+                placeholder="Shop Name"
+                value={newMechanic.shopName}
+                onChange={(e) => setNewMechanic({ ...newMechanic, shopName: e.target.value })}
+              />
+
+              <input
+                type="text"
+                className="form-control mb-2"
+                placeholder="Address"
+                value={newMechanic.address}
+                onChange={(e) => setNewMechanic({ ...newMechanic, address: e.target.value })}
+              />
+
               <div className="d-flex gap-2 mb-2">
-                <input type="number" className="form-control" placeholder="Latitude"
+                <input
+                  type="number"
+                  className="form-control"
+                  placeholder="Latitude"
                   value={newMechanic.latitude}
-                  onChange={(e) => setNewMechanic({ ...newMechanic, latitude: e.target.value })} />
-                <input type="number" className="form-control" placeholder="Longitude"
+                  onChange={(e) => setNewMechanic({ ...newMechanic, latitude: e.target.value })}
+                />
+
+                <input
+                  type="number"
+                  className="form-control"
+                  placeholder="Longitude"
                   value={newMechanic.longitude}
-                  onChange={(e) => setNewMechanic({ ...newMechanic, longitude: e.target.value })} />
+                  onChange={(e) => setNewMechanic({ ...newMechanic, longitude: e.target.value })}
+                />
               </div>
 
               <button type="button" className="btn btn-outline-info w-100 mb-2" onClick={detectLocation}>
                 📍 Detect My Location
               </button>
 
-              <button type="submit" className="btn btn-success w-100">Add Mechanic</button>
+              <button type="submit" className="btn btn-success w-100">
+                Add Mechanic
+              </button>
             </form>
 
             <div className="text-center mt-3">
-              <button className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
+              <button className="btn btn-secondary" onClick={() => setShowAddModal(false)}>
+                Cancel
+              </button>
             </div>
           </div>
         </div>

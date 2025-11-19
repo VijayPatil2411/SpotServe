@@ -1,6 +1,7 @@
 package com.spotserve.controller;
 
 import com.spotserve.model.Job;
+import com.spotserve.model.ServiceEntity;
 import com.spotserve.model.User;
 import com.spotserve.repository.JobRepository;
 import com.spotserve.repository.UserRepository;
@@ -26,6 +27,28 @@ public class JobController {
     private UserRepository userRepository;
 
     /* ======================================================
+       🔥 Helper: attach serviceName + baseAmount to job
+    ====================================================== */
+    private void enrichJob(Job job) {
+        try {
+            ServiceEntity service = job.getService();
+
+            if (service != null) {
+                if (service.getName() != null)
+                    job.setServiceName(service.getName());
+
+                if (service.getBasePrice() != null)
+                    job.setBaseAmount(service.getBasePrice());
+            }
+
+            // fallback if nothing found
+            if (job.getBaseAmount() == null)
+                job.setBaseAmount(500.0);
+
+        } catch (Exception ignored) {}
+    }
+
+    /* ======================================================
        ✅ 1. Get all jobs of logged-in customer
     ====================================================== */
     @GetMapping
@@ -34,15 +57,15 @@ public class JobController {
             return ResponseEntity.status(401).build();
 
         User user = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
-        if (user == null) return ResponseEntity.notFound().build();
+        if (user == null)
+            return ResponseEntity.notFound().build();
 
         List<Job> jobs = jobRepository.findByCustomerId(user.getId());
-        jobs.forEach(job -> {
-            // ✅ Ensure related service name
-            if (job.getService() != null && job.getService().getName() != null)
-                job.setServiceName(job.getService().getName());
 
-            // ✅ Ensure payment URL is explicitly fetched (so it appears in frontend JSON)
+        jobs.forEach(job -> {
+            enrichJob(job);
+
+            // ensure payment URL included
             if (job.getPaymentUrl() != null && !job.getPaymentUrl().isBlank()) {
                 job.setPaymentUrl(job.getPaymentUrl());
             }
@@ -62,13 +85,17 @@ public class JobController {
 
             if (job.getCustomerId() == null)
                 return ResponseEntity.badRequest().body("{\"message\": \"Customer ID missing\"}");
+
             if (job.getVehicleId() == null)
                 return ResponseEntity.badRequest().body("{\"message\": \"Vehicle ID missing\"}");
 
             job.setStatus("Pending");
             Job savedJob = jobRepository.save(job);
 
-            return ResponseEntity.ok("{\"message\": \"Service request created successfully!\", \"jobId\": " + savedJob.getId() + "}");
+            return ResponseEntity.ok(
+                    "{\"message\": \"Service request created successfully!\", \"jobId\": " + savedJob.getId() + "}"
+            );
+
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError()
@@ -80,7 +107,9 @@ public class JobController {
        ✅ 3. Cancel pending job
     ====================================================== */
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<?> cancelJob(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> cancelJob(@PathVariable Long id,
+                                       @AuthenticationPrincipal UserDetails userDetails) {
+
         if (userDetails == null)
             return ResponseEntity.status(401).body("Unauthorized");
 
@@ -100,6 +129,7 @@ public class JobController {
 
         job.setStatus("Cancelled");
         jobRepository.save(job);
+
         return ResponseEntity.ok("{\"message\": \"Job cancelled successfully\"}");
     }
 
@@ -108,6 +138,7 @@ public class JobController {
     ====================================================== */
     @GetMapping("/available")
     public ResponseEntity<List<Job>> getAvailableJobsForMechanic(@AuthenticationPrincipal UserDetails userDetails) {
+
         if (userDetails == null)
             return ResponseEntity.status(401).build();
 
@@ -125,13 +156,15 @@ public class JobController {
         double mechLng = mechanic.getLongitude() != null ? mechanic.getLongitude() : 0.0;
 
         for (Job job : pendingJobs) {
+
+            // Display distance in description
             if (job.getPickupLat() != null && job.getPickupLng() != null) {
                 double distance = haversine(mechLat, mechLng, job.getPickupLat(), job.getPickupLng());
                 job.setDescription((job.getDescription() != null ? job.getDescription() : "")
                         + " (" + String.format("%.2f km away", distance) + ")");
             }
-            if (job.getService() != null && job.getService().getName() != null)
-                job.setServiceName(job.getService().getName());
+
+            enrichJob(job);
         }
 
         pendingJobs.sort(Comparator.comparingDouble(job -> {
@@ -147,7 +180,9 @@ public class JobController {
        ✅ 5. Mechanic accepts job
     ====================================================== */
     @PutMapping("/{jobId}/accept")
-    public ResponseEntity<?> acceptJob(@PathVariable Long jobId, @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> acceptJob(@PathVariable Long jobId,
+                                       @AuthenticationPrincipal UserDetails userDetails) {
+
         if (userDetails == null)
             return ResponseEntity.status(401).body("Unauthorized");
 
@@ -174,6 +209,7 @@ public class JobController {
     ====================================================== */
     @GetMapping("/accepted")
     public ResponseEntity<List<Job>> getAcceptedJobs(@AuthenticationPrincipal UserDetails userDetails) {
+
         if (userDetails == null)
             return ResponseEntity.status(401).build();
 
@@ -182,20 +218,19 @@ public class JobController {
             return ResponseEntity.notFound().build();
 
         List<Job> acceptedJobs = jobRepository.findByMechanicId(mechanic.getId());
-        acceptedJobs.forEach(job -> {
-            if (job.getService() != null && job.getService().getName() != null)
-                job.setServiceName(job.getService().getName());
-        });
+
+        acceptedJobs.forEach(this::enrichJob);
 
         return ResponseEntity.ok(acceptedJobs);
     }
 
     /* ======================================================
-       ✅ 7. Start Job → Generate OTP
+       ✅ 7. Start job → generate OTP
     ====================================================== */
     @PutMapping("/{jobId}/start")
     public ResponseEntity<?> startJob(@PathVariable Long jobId,
                                       @AuthenticationPrincipal UserDetails userDetails) {
+
         if (userDetails == null)
             return ResponseEntity.status(401).body("Unauthorized");
 
@@ -226,6 +261,7 @@ public class JobController {
     @GetMapping("/{jobId}/otp")
     public ResponseEntity<?> getCustomerOtp(@PathVariable Long jobId,
                                             @AuthenticationPrincipal UserDetails userDetails) {
+
         if (userDetails == null)
             return ResponseEntity.status(401).body("Unauthorized");
 
@@ -253,6 +289,7 @@ public class JobController {
     public ResponseEntity<?> verifyOtp(@PathVariable Long jobId,
                                        @RequestParam String otp,
                                        @AuthenticationPrincipal UserDetails userDetails) {
+
         if (userDetails == null)
             return ResponseEntity.status(401).body("Unauthorized");
 
@@ -274,11 +311,12 @@ public class JobController {
     }
 
     /* ======================================================
-       ✅ 10. Complete Job (Fallback)
+       ✅ 10. Complete Job (fallback)
     ====================================================== */
     @PutMapping("/{jobId}/complete")
     public ResponseEntity<?> completeJob(@PathVariable Long jobId,
                                          @AuthenticationPrincipal UserDetails userDetails) {
+
         if (userDetails == null)
             return ResponseEntity.status(401).body("Unauthorized");
 
@@ -296,15 +334,19 @@ public class JobController {
     }
 
     /* ======================================================
-       ✅ Utility: Distance Calculation
+       🔧 Utility — Distance Calculation (Haversine)
     ====================================================== */
     private double haversine(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371;
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                        + Math.cos(Math.toRadians(lat1))
+                        * Math.cos(Math.toRadians(lat2))
+                        * Math.sin(dLon / 2)
+                        * Math.sin(dLon / 2);
+
         return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 }

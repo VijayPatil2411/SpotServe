@@ -45,16 +45,24 @@ public class Job {
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
 
-    // ✅ Payment field — used when a mechanic completes job & Stripe URL is generated
     @Column(name = "payment_url", columnDefinition = "TEXT")
     private String paymentUrl;
 
-    // ✅ Relations
+    // ========================
+    // 🔥 NEW FIELDS
+    // ========================
+    @Column(name = "extra_amount")
+    private Double extraAmount = 0.0;
+
+    @Column(name = "total_amount")
+    private Double totalAmount = 0.0;
+
+    // Service relation
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id", insertable = false, updatable = false)
     private ServiceEntity service;
 
-    // ✅ Transient fields (not saved in DB)
+    // Transient fields
     @Transient
     private String serviceName;
 
@@ -64,134 +72,57 @@ public class Job {
     @Transient
     private String mechanicName;
 
-    // ==============================
-    // ✅ Constructors
-    // ==============================
+    @Transient
+    private Double baseAmount;
+
     public Job() {}
 
-    // ==============================
-    // ✅ Getters and Setters
-    // ==============================
-    public Long getId() {
-        return id;
-    }
+    // ===== GETTERS / SETTERS =====
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Long getCustomerId() {
-        return customerId;
-    }
+    public Long getCustomerId() { return customerId; }
+    public void setCustomerId(Long customerId) { this.customerId = customerId; }
 
-    public void setCustomerId(Long customerId) {
-        this.customerId = customerId;
-    }
+    public Long getServiceId() { return serviceId; }
+    public void setServiceId(Long serviceId) { this.serviceId = serviceId; }
 
-    public Long getServiceId() {
-        return serviceId;
-    }
+    public Long getVehicleId() { return vehicleId; }
+    public void setVehicleId(Long vehicleId) { this.vehicleId = vehicleId; }
 
-    public void setServiceId(Long serviceId) {
-        this.serviceId = serviceId;
-    }
+    public Long getMechanicId() { return mechanicId; }
+    public void setMechanicId(Long mechanicId) { this.mechanicId = mechanicId; }
 
-    public Long getVehicleId() {
-        return vehicleId;
-    }
+    public Double getPickupLat() { return pickupLat; }
+    public void setPickupLat(Double pickupLat) { this.pickupLat = pickupLat; }
 
-    public void setVehicleId(Long vehicleId) {
-        this.vehicleId = vehicleId;
-    }
+    public Double getPickupLng() { return pickupLng; }
+    public void setPickupLng(Double pickupLng) { this.pickupLng = pickupLng; }
 
-    public Long getMechanicId() {
-        return mechanicId;
-    }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
-    public void setMechanicId(Long mechanicId) {
-        this.mechanicId = mechanicId;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public Double getPickupLat() {
-        return pickupLat;
-    }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
-    public void setPickupLat(Double pickupLat) {
-        this.pickupLat = pickupLat;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public Double getPickupLng() {
-        return pickupLng;
-    }
+    public String getOtpCode() { return otpCode; }
+    public void setOtpCode(String otpCode) { this.otpCode = otpCode; }
 
-    public void setPickupLng(Double pickupLng) {
-        this.pickupLng = pickupLng;
-    }
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 
-    public String getLocation() {
-        return location;
-    }
+    public String getPaymentUrl() { return paymentUrl; }
+    public void setPaymentUrl(String paymentUrl) { this.paymentUrl = paymentUrl; }
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getOtpCode() {
-        return otpCode;
-    }
-
-    public void setOtpCode(String otpCode) {
-        this.otpCode = otpCode;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    // ✅ New payment URL getter/setter
-    public String getPaymentUrl() {
-        return paymentUrl;
-    }
-
-    public void setPaymentUrl(String paymentUrl) {
-        this.paymentUrl = paymentUrl;
-    }
-
-    public ServiceEntity getService() {
-        return service;
-    }
-
-    public void setService(ServiceEntity service) {
-        this.service = service;
-    }
+    public ServiceEntity getService() { return service; }
+    public void setService(ServiceEntity service) { this.service = service; }
 
     public String getServiceName() {
         if (serviceName != null && !serviceName.isBlank()) return serviceName;
@@ -200,23 +131,29 @@ public class Job {
                 : "Unknown Service";
     }
 
-    public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
+    public void setServiceName(String serviceName) { this.serviceName = serviceName; }
+
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+
+    public String getMechanicName() { return mechanicName; }
+    public void setMechanicName(String mechanicName) { this.mechanicName = mechanicName; }
+
+    // Base Amount from service table
+    public Double getBaseAmount() {
+        if (baseAmount != null) return baseAmount;
+        if (service != null && service.getBasePrice() != null)
+            return service.getBasePrice();
+        return 500.0;
     }
 
-    public String getCustomerName() {
-        return customerName;
-    }
+    public void setBaseAmount(Double baseAmount) { this.baseAmount = baseAmount; }
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
-    }
+    // ========= NEW EXTRA/TOTAL FIELDS ==========
 
-    public String getMechanicName() {
-        return mechanicName;
-    }
+    public Double getExtraAmount() { return extraAmount; }
+    public void setExtraAmount(Double extraAmount) { this.extraAmount = extraAmount; }
 
-    public void setMechanicName(String mechanicName) {
-        this.mechanicName = mechanicName;
-    }
+    public Double getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(Double totalAmount) { this.totalAmount = totalAmount; }
 }

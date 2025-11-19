@@ -30,12 +30,9 @@ const ServiceCards = ({ services, user }) => {
 
   return (
     <div className="container mt-5">
-
       {/* Toast */}
       {toast.show && (
-        <div className={`home-toast toast-${toast.type}`}>
-          {toast.msg}
-        </div>
+        <div className={`home-toast toast-${toast.type}`}>{toast.msg}</div>
       )}
 
       <div className="row justify-content-center">
@@ -46,14 +43,17 @@ const ServiceCards = ({ services, user }) => {
           >
             <div className="card service-card shadow-sm text-center p-3 border-0">
               <img
-                src={serviceIcons[service.name] || serviceIcons["Battery Jumpstart"]}
+                src={
+                  serviceIcons[service.name] ||
+                  serviceIcons["Battery Jumpstart"]
+                }
                 alt={service.name}
                 className="service-icon mb-3"
               />
 
               <h5 className="fw-semibold mb-2">{service.name}</h5>
               <p className="text-muted mb-3">
-                Base Price: ₹{service.base_price || service.basePrice}
+                Base Price: ₹{service.basePrice || service.base_price}
               </p>
 
               <button
@@ -73,6 +73,7 @@ const ServiceCards = ({ services, user }) => {
         ))}
       </div>
 
+      {/* Modal */}
       {selectedService && (
         <BookRequestModal
           show={!!selectedService}
