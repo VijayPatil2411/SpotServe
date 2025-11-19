@@ -112,3 +112,56 @@
   .panel-search{ min-width:140px; }
   .cards-row{ grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); }
 }
+
+/* === Services section styles === */
+.services-section.card {
+  background: linear-gradient(180deg,#fff,#fbfeff);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+/* table action buttons spacing */
+.table-admin td .btn {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
+/* small modal-card used for the delete confirm */
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px;
+  width: 420px;
+  max-width: 95%;
+  box-shadow: 0 12px 30px rgba(2,6,23,0.12);
+  animation: fadeIn .18s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* toast look (re-uses your toast classes used in Login) */
+.toast-notification {
+  position: fixed;
+  right: 18px;
+  top: 18px;
+  z-index: 99999;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: 0 8px 30px rgba(2,6,23,0.12);
+}
+.toast-success { background: linear-gradient(90deg,#10b981,#059669); }
+.toast-error { background: linear-gradient(90deg,#ef4444,#dc2626); }
+
+/* small responsive tweaks for the services table */
+@media (max-width: 900px) {
+  .services-section .table-admin thead th:nth-child(3), .services-section .table-admin td:nth-child(3) {
+    display: none; /* hide base price column on very narrow screens if needed */
+  }
+}
+

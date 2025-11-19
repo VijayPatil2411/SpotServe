@@ -177,9 +177,7 @@ const Navbar = () => {
                 <Link className="nav-link-modern" to="/">
                   Home
                 </Link>
-                <Link className="nav-link-modern" to="/our-story">
-                  Our Story
-                </Link>
+                
                 <Link className="nav-link-modern" to="/about-us">
                   About Us
                 </Link>

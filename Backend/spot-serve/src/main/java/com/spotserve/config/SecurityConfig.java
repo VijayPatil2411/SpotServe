@@ -20,14 +20,33 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http.csrf(csrf -> csrf.disable())
+
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/services/**","/api/customer/**","/api/payments/**").permitAll()
+
+                        // 🔓 Public (No login needed)
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/services/**").permitAll()
+                        .requestMatchers("/api/payments/**").permitAll()
+
+                        // 🔐 Customer Endpoints (Require login)
+                        .requestMatchers("/api/customer/**").authenticated()
+
+                        // 🔐 Mechanic Endpoints (Require login)
+                        .requestMatchers("/api/mechanic/**").authenticated()
+
+                        // 🔐 Admin Service Management (Require admin login)
+                        .requestMatchers("/api/admin/services/**").hasRole("ADMIN")
+
+                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

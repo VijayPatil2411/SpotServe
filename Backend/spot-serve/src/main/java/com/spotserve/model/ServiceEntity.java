@@ -13,6 +13,8 @@ public class ServiceEntity {
     private Long id;
 
     private String name;
+
+    @Column(name = "base_price")
     private Double basePrice;
 
     // ===== Getters & Setters =====
