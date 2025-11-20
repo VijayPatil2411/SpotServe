@@ -85,6 +85,11 @@ const AdminDashboard = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
+
+          console.log("📊 Stats Response:", data);
+    console.log("👥 Total Users:", data.totalUsers);
+    console.log("🔧 Total Mechanics:", data.totalMechanics);
+    
       setStats(data || {});
     } catch {
       setStats({});
@@ -271,7 +276,7 @@ const AdminDashboard = () => {
     {
       key: "USERS",
       title: "Total Users",
-      value: stats.totalUsers ?? "-",
+      value: stats.totalUsers ?? usersList.length ?? "-",
       icon: "👥",
       onClick: () => loadUsers(),
     },
@@ -310,7 +315,7 @@ const AdminDashboard = () => {
       <div className="summary-strip">
         <div>Total Mechanics: <strong>{stats.totalMechanics ?? mechanicsSummary.length}</strong></div>
         <div>Total Jobs: <strong>{stats.total ?? allJobs.length}</strong></div>
-        <div>Total Users: <strong>{stats.totalUsers ?? "-"}</strong></div>
+        {/* <div>Total Users: <strong>{stats.totalUsers ?? "-"}</strong></div> */}
         <div>Last Refresh: <strong>{new Date().toLocaleString()}</strong></div>
       </div>
 
