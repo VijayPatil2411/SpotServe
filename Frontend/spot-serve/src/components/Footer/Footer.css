@@ -51,15 +51,19 @@
 
 /* Social Icons */
 .social-icons a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: #d1d5db;
-  font-size: 20px;
-  margin-right: 10px;
+  font-size: 16px;
   text-decoration: none;
-  transition: 0.3s;
+  transition: all 0.3s ease;
+  padding: 8px 0;
 }
 
 .social-icons a:hover {
   color: #fbbf24;
+  transform: translateX(5px);
 }
 
 /* Footer Bottom */
@@ -79,8 +83,13 @@
     text-align: center;
   }
 
+  .social-icons {
+    align-items: center;
+  }
+
   .social-icons a {
-    margin: 0 8px;
+    justify-content: center;
+    max-width: 200px;
   }
 }
 

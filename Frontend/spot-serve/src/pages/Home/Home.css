@@ -1,202 +1,86 @@
-.home {
-  font-family: "Poppins", sans-serif;
-  color: #222;
-  overflow-x: hidden;
+/* Home.css — simplified, responsive, small */
+:root{
+  --accent-1: #667eea;
+  --accent-2: #764ba2;
+  --muted: #6c757d;
+  --bg-soft: #f8f9fa;
+  --radius: 14px;
+  --container-max: 1200px;
 }
 
-/* ==================== Hero Section ==================== */
-.hero-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
-  min-height: 90vh;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
-  position: relative;
-  overflow: hidden;
+/* Reset / base */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:"Poppins",sans-serif;color:#222;margin:0;overflow-x:hidden;background:#fff}
+.container{max-width:var(--container-max);margin:0 auto;padding:0 1rem}
+
+/* Responsive type helpers */
+.h1 {font-size:clamp(1.6rem, 2.6vw + 1rem, 3.5rem); line-height:1.1; font-weight:800}
+.h2 {font-size:clamp(1.2rem, 1.6vw + .8rem, 2.5rem); font-weight:800}
+.lead {font-size:clamp(.95rem, .8vw + .7rem, 1.1rem); color:var(--muted)}
+
+/* HERO */
+.hero-section{
+  background:linear-gradient(135deg,var(--accent-1),var(--accent-2));
+  color:#fff; min-height: clamp(60vh, 75vh, 90vh);
+  display:flex; align-items:center; justify-content:center; position:relative; padding:3rem 0;
+}
+.hero-content{z-index:2;text-align:center;max-width:900px;margin:0 auto;padding:0 1rem}
+.hero-title{margin:0 0 .6rem}.hero-subtitle{margin:.2rem 0 1rem}
+.hero-description{margin-bottom:1.4rem;opacity:.95}
+.hero-buttons{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap}
+.hero-btn{padding:.7rem 1.6rem;border-radius:999px;font-weight:600;border:2px solid #fff;background:transparent;color:#fff;cursor:pointer}
+.hero-btn:hover{transform:translateY(-3px);background:#fff;color:var(--accent-1)}
+
+/* Decorative light spots (keeps visual feel without many rules) */
+.hero-section::before{
+  content:"";position:absolute;inset:0;background:
+  radial-gradient(circle at 20% 50%, rgba(255,255,255,.08) 0%, transparent 40%),
+  radial-gradient(circle at 80% 80%, rgba(255,255,255,.06) 0%, transparent 30%);
+  pointer-events:none
 }
 
-.hero-section::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-  pointer-events: none;
+/* EMERGENCY CTA (kept simple and responsive) */
+.emergency-cta{background:rgba(255,255,255,.12);backdrop-filter:blur(6px);padding:1.5rem;border-radius:18px;margin-top:2.5rem;max-width:720px;margin-left:auto;margin-right:auto;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.08)}
+.emergency-cta h3{margin:.2rem 0 1rem;font-size:clamp(1.1rem,1.5vw,1.6rem)}
+.emergency-btn{background:#dc3545;border:none;padding:.7rem 1.4rem;border-radius:999px;font-weight:700;color:#fff;cursor:pointer}
+
+/* SECTIONS & CARDS */
+section{padding:3rem 0}
+.customer-services{background:#fff}
+.stat-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));align-items:stretch}
+.stat-card{background:var(--bg-soft);padding:1.2rem;border-radius:var(--radius);text-align:center;transition:transform .25s,box-shadow .25s}
+.stat-card:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(0,0,0,.06)}
+.stat-icon{font-size:clamp(1.8rem,2.6vw,3.5rem);margin-bottom:.5rem}
+.stat-number{font-size:clamp(1.2rem,1.8vw,2.4rem);font-weight:800;color:var(--accent-1)}
+.stat-label{color:var(--muted);margin:0;font-weight:600}
+
+/* SERVICES list wrapper — ServiceCards should adapt inside */
+.service-cards{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+
+/* SIMPLE utility for tables used in admin but harmless here */
+.table{width:100%;border-collapse:collapse}
+
+/* small visual niceties */
+.section-title{margin-bottom:.5rem;font-weight:800}
+.text-center{text-align:center}
+.mb-4{margin-bottom:1rem}
+
+/* Minimal responsive tweaks */
+@media (max-width:880px){
+  .hero-content{padding:0 1.2rem}
+  .hero-buttons{gap:.6rem}
 }
 
-.hero-content {
-  position: relative;
-  z-index: 2;
+@media (max-width:480px){
+  .hero-section{padding:2rem 0;min-height:60vh}
+  .hero-title{font-size:clamp(1.2rem,5vw,2rem)}
+  .emergency-cta{padding:1rem;border-radius:12px}
 }
 
-.hero-title {
-  font-size: 3.5rem;
-  font-weight: 800;
-  margin-bottom: 1.5rem;
-  line-height: 1.2;
-}
+/* keep toast simple and above everything */
+.home-toast{position:fixed;top:18px;right:18px;background:#ff4d4f;color:#fff;padding:.5rem .9rem;border-radius:8px;z-index:2000;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.12)}
 
-.hero-subtitle {
-  font-size: 1.5rem;
-  margin: 1rem 0;
-  font-weight: 500;
-}
-
-.hero-description {
-  font-size: 1.1rem;
-  margin-bottom: 2rem;
-  opacity: 0.95;
-}
-
-.hero-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-}
-
-.hero-btn {
-  font-size: 1.1rem;
-  padding: 0.8rem 2rem;
-  border-radius: 50px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  border: none;
-}
-
-.btn-get-started {
-  background: #fff;
-  color: #667eea;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.btn-get-started:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-  background: #f8f9fa;
-  color: #667eea;
-}
-
-.btn-learn-more {
-  border: 2px solid #fff;
-  background: transparent;
-}
-
-.btn-learn-more:hover {
-  background: #fff;
-  color: #667eea;
-  transform: translateY(-3px);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.8s ease-out;
-}
-
-.animate-fade-in-delay {
-  animation: fadeIn 0.8s ease-out 0.2s backwards;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-.pulse-animation {
-  animation: pulse 2s ease-in-out infinite;
-}
-
-/* ==================== Emergency CTA ==================== */
-.emergency-cta {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  padding: 40px 20px;
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
-}
-
-.emergency-cta:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-}
-
-.emergency-cta h3 {
-  color: #fff;
-  font-weight: 700;
-  font-size: 1.8rem;
-  margin-bottom: 1.5rem;
-}
-
-.emergency-btn {
-  font-size: 1.3rem;
-  padding: 15px 40px;
-  border-radius: 50px;
-  font-weight: 700;
-  transition: all 0.3s ease;
-  border: none;
-  background: #dc3545;
-  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
-}
-
-.emergency-btn:hover {
-  background: #c82333;
-  transform: scale(1.05);
-  box-shadow: 0 6px 25px rgba(220, 53, 69, 0.6);
-}
-
-/* ==================== Statistics Section ==================== */
-.stats-section {
-  background: #f8f9fa;
-  border-top: 1px solid #e9ecef;
-}
-
-.stat-card {
-  padding: 2rem 1rem;
-  transition: all 0.3s ease;
-  border-radius: 15px;
-}
-
-.stat-card:hover {
-  transform: translateY(-10px);
-}
-
-.stat-icon {
-  font-size: 3.5rem;
-  margin-bottom: 1rem;
-}
-
-.stat-number {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #667eea;
-  margin-bottom: 0.5rem;
-}
-
-.stat-label {
-  font-size: 1rem;
-  color: #6c757d;
-  margin: 0;
-  font-weight: 500;
-}
 
 /* ==================== How It Works Section ==================== */
 .how-it-works-section {
@@ -585,32 +469,14 @@
   box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
 }
 
-/* ==================== Customer Services Section ==================== */
-.customer-services {
-  background: #fff;
-}
-
 /* ==================== Responsive Design ==================== */
 
 @media screen and (max-width: 992px) {
-  .hero-title { font-size: 2.8rem; }
-  .hero-subtitle { font-size: 1.3rem; }
   .section-title { font-size: 2rem; }
-  .stat-number { font-size: 2rem; }
-  .stat-icon { font-size: 3rem; }
 }
 
 @media screen and (max-width: 768px) {
-  .hero-title { font-size: 2.2rem; }
-  .hero-subtitle { font-size: 1.1rem; }
-  .hero-description { font-size: 1rem; }
-  .hero-buttons { flex-direction: column; }
-  .hero-btn { width: 100%; max-width: 300px; }
-  .emergency-cta h3 { font-size: 1.4rem; }
-  .emergency-btn { font-size: 1.1rem; padding: 12px 30px; }
   .section-title { font-size: 1.8rem; }
-  .stat-number { font-size: 1.8rem; }
-  .stat-icon { font-size: 2.5rem; }
   .about-img { width: 70%; }
   .feature-icon { width: 80px; height: 80px; }
   .gallery-item { height: 200px; }
@@ -622,36 +488,8 @@
 }
 
 @media screen and (max-width: 576px) {
-  .hero-section { min-height: 80vh; padding: 2rem 0; }
-  .hero-title { font-size: 1.8rem; }
-  .hero-subtitle { font-size: 1rem; }
-  .emergency-cta { padding: 30px 15px; }
-  .stat-card { padding: 1.5rem 1rem; }
   .step-card, .feature-card, .why-card { padding: 2rem 1.5rem; }
   .section-title { font-size: 1.5rem; }
   .trust-icon { width: 50px; height: 50px; }
   .gallery-item { height: 180px; }
-}
-
-html { scroll-behavior: smooth; }
-body { overflow-x: hidden; }
-.home-toast {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #ff4d4f;
-  color: white;
-  padding: 12px 18px;
-  border-radius: 8px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-  z-index: 2000;
-  font-weight: 600;
-  animation: fadeInOut 2.5s ease;
-}
-
-@keyframes fadeInOut {
-  0% { opacity: 0; transform: translateY(-10px); }
-  10% { opacity: 1; transform: translateY(0); }
-  90% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(-10px); }
 }

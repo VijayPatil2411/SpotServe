@@ -5,55 +5,46 @@ import api from "../../services/api";
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080/api";
 
 const AdminDashboard = () => {
-  /** ===========================
-   *  STATE
-   ============================= */
+  /** STATE */
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
 
   const [jobs, setJobs] = useState([]);
   const [allJobs, setAllJobs] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState(null);
+
+  // panelView values: "list" | "mechanics" | "users"
   const [panelOpen, setPanelOpen] = useState(false);
-  const [panelView, setPanelView] = useState("list"); // list | mechanics | users
+  const [panelView, setPanelView] = useState("list");
   const [searchInPanel, setSearchInPanel] = useState("");
   const [fetchingPanel, setFetchingPanel] = useState(false);
 
-  /** ===========================
-   *  SERVICES (unchanged)
-   ============================= */
+  /* SERVICES */
   const [services, setServices] = useState([]);
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
   const [serviceForm, setServiceForm] = useState({ id: null, name: "", basePrice: "" });
   const [isEditing, setIsEditing] = useState(false);
 
-  /** ===========================
-   *  USERS / MECHANICS
-   ============================= */
+  /* USERS / MECHANICS */
   const [usersList, setUsersList] = useState([]);
   const [mechanicsList, setMechanicsList] = useState([]);
 
-  /** ===========================
-   *  TOAST
-   ============================= */
+  /* TOAST */
   const [toast, setToast] = useState({ show: false, type: "success", msg: "" });
   const showToast = (msg, type = "success") => {
     setToast({ show: true, msg, type });
     setTimeout(() => setToast({ show: false, msg: "", type: "" }), 2800);
   };
 
-  /** ===========================
-   *  INITIAL LOAD
-   ============================= */
+  /** INITIAL LOAD */
   useEffect(() => {
     loadDashboard();
     loadAllJobs();
     loadServices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** ===========================
-   *  HELPERS
-   ============================= */
+  /** HELPERS */
   const parseJobs = (d) => {
     if (!d) return [];
     if (Array.isArray(d)) return d;
@@ -63,27 +54,21 @@ const AdminDashboard = () => {
     return arr.length ? arr[0] : [];
   };
 
-  /** ===========================
-   *  FIX #1 — Load ALL JOBS properly
-   ============================= */
+  /** Load all jobs (used for Total and local summaries) */
   const loadAllJobs = async () => {
     const token = localStorage.getItem("token");
-
     try {
       const statuses = ["Completed", "Pending", "Accepted", "Ongoing", "Cancelled"];
       let combined = [];
-
       for (let st of statuses) {
         const res = await fetch(
           `${API_BASE}/admin/dashboard/jobs?status=${encodeURIComponent(st)}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-
         const raw = await res.json().catch(() => null);
         const parsed = parseJobs(raw || []);
         combined = [...combined, ...parsed];
       }
-
       setAllJobs(combined);
     } catch (err) {
       console.error("loadAllJobs error:", err);
@@ -91,9 +76,7 @@ const AdminDashboard = () => {
     }
   };
 
-  /** ===========================
-   *  DASHBOARD STATS
-   ============================= */
+  /** Dashboard stats */
   const loadDashboard = async () => {
     setLoading(true);
     const token = localStorage.getItem("token");
@@ -110,18 +93,15 @@ const AdminDashboard = () => {
     }
   };
 
-  /** ===========================
-   *  JOB LIST BY STATUS
-   ============================= */
+  /** Fetch jobs for a single status and open jobs panel only */
   const fetchJobsByStatus = async (status) => {
     setSelectedStatus(status);
     setFetchingPanel(true);
-    setPanelView("list");
+    setPanelView("list"); // show jobs list only
     setPanelOpen(true);
     setSearchInPanel("");
 
     const token = localStorage.getItem("token");
-
     try {
       const res = await fetch(
         `${API_BASE}/admin/dashboard/jobs?status=${encodeURIComponent(status)}`,
@@ -129,7 +109,6 @@ const AdminDashboard = () => {
       );
       const raw = await res.json();
       const parsed = parseJobs(raw);
-
       if (parsed.length) setJobs(parsed);
       else setJobs(allJobs.filter((j) => (j.status || "").toUpperCase() === status));
     } catch {
@@ -139,9 +118,7 @@ const AdminDashboard = () => {
     }
   };
 
-  /** ===========================
-   *  OPEN TOTAL PANEL (uses full allJobs)
-   ============================= */
+  /** Open total panel — show only jobs (all) */
   const openTotalPanel = () => {
     setSelectedStatus("TOTAL");
     setPanelOpen(true);
@@ -150,9 +127,7 @@ const AdminDashboard = () => {
     setJobs(allJobs);
   };
 
-  /** ===========================
-   *  SERVICES FUNCTIONS
-   ============================= */
+  /** SERVICES */
   const loadServices = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -183,12 +158,10 @@ const AdminDashboard = () => {
 
   const handleSaveService = async () => {
     const token = localStorage.getItem("token");
-
     if (!serviceForm.name || !serviceForm.basePrice) {
       showToast("Fill all fields", "error");
       return;
     }
-
     try {
       if (isEditing) {
         await api.put(`/api/admin/services/${serviceForm.id}`, serviceForm, {
@@ -201,7 +174,6 @@ const AdminDashboard = () => {
         });
         showToast("Service added!");
       }
-
       setServiceModalOpen(false);
       loadServices();
     } catch {
@@ -211,7 +183,6 @@ const AdminDashboard = () => {
 
   const handleDeleteService = async (id) => {
     if (!window.confirm("Delete this service?")) return;
-
     try {
       const token = localStorage.getItem("token");
       await api.delete(`/api/admin/services/${id}`, {
@@ -224,9 +195,7 @@ const AdminDashboard = () => {
     }
   };
 
-  /** ===========================
-   *  USERS & MECHANICS
-   ============================= */
+  /** USERS & MECHANICS */
   const loadUsers = async () => {
     setFetchingPanel(true);
     try {
@@ -240,9 +209,10 @@ const AdminDashboard = () => {
     } finally {
       setFetchingPanel(false);
     }
+    setPanelView("users"); // show users only
+    setPanelOpen(true);
   };
 
-  /** FIX #2 — ALWAYS load mechanics when opening mechanics tab */
   const loadMechanics = async () => {
     setFetchingPanel(true);
     try {
@@ -256,9 +226,11 @@ const AdminDashboard = () => {
     } finally {
       setFetchingPanel(false);
     }
+    setPanelView("mechanics"); // show mechanics only
+    setPanelOpen(true);
   };
 
-  /** Summary of jobs per mechanic */
+  /** Summary of jobs per mechanic (unchanged) */
   const mechanicsSummary = useMemo(() => {
     const map = {};
     allJobs.forEach((j) => {
@@ -288,17 +260,12 @@ const AdminDashboard = () => {
     { key: "ONGOING", title: "Ongoing", value: stats.ongoing ?? 0, icon: "⚙️", onClick: () => fetchJobsByStatus("ONGOING") },
     { key: "CANCELLED", title: "Cancelled", value: stats.cancelled ?? 0, icon: "❌", onClick: () => fetchJobsByStatus("CANCELLED") },
 
-    /** Mechanics card → ALWAYS loads mechanics */
     {
       key: "MECHS",
       title: "Total Mechanics",
       value: stats.totalMechanics ?? mechanicsSummary.length ?? 0,
       icon: "🔧",
-      onClick: () => {
-        setPanelView("mechanics");
-        setPanelOpen(true);
-        loadMechanics();
-      },
+      onClick: () => loadMechanics(),
     },
 
     {
@@ -306,11 +273,7 @@ const AdminDashboard = () => {
       title: "Total Users",
       value: stats.totalUsers ?? "-",
       icon: "👥",
-      onClick: () => {
-        setPanelView("users");
-        setPanelOpen(true);
-        loadUsers();
-      },
+      onClick: () => loadUsers(),
     },
 
     {
@@ -318,17 +281,11 @@ const AdminDashboard = () => {
       title: "Top Mechanic",
       value: topMechanic,
       icon: "⭐",
-      onClick: () => {
-        setPanelView("mechanics");
-        setPanelOpen(true);
-        loadMechanics();
-      },
+      onClick: () => loadMechanics(),
     },
   ];
 
-  /** ===========================
-   *  RENDER
-   ============================= */
+  /** RENDER */
   return (
     <div className="admin-dashboard container mt-4">
       {toast.show && <div className={`admin-toast toast-${toast.type}`}>{toast.msg}</div>}
@@ -453,36 +410,7 @@ const AdminDashboard = () => {
                   />
                 )}
 
-                {/* Tabs */}
-                <div className="view-tabs">
-                  <button
-                    className={`tab-btn ${panelView === "list" ? "active" : ""}`}
-                    onClick={() => setPanelView("list")}
-                  >
-                    List
-                  </button>
-
-                  <button
-                    className={`tab-btn ${panelView === "mechanics" ? "active" : ""}`}
-                    onClick={() => {
-                      setPanelView("mechanics");
-                      loadMechanics();
-                    }}
-                  >
-                    Mechanics
-                  </button>
-
-                  <button
-                    className={`tab-btn ${panelView === "users" ? "active" : ""}`}
-                    onClick={() => {
-                      setPanelView("users");
-                      loadUsers();
-                    }}
-                  >
-                    Users
-                  </button>
-                </div>
-
+                {/* Tabs removed on purpose — panel shows only the relevant data */}
                 <button className="close-btn" onClick={() => setPanelOpen(false)}>✕</button>
               </div>
             </div>
@@ -491,15 +419,13 @@ const AdminDashboard = () => {
               {fetchingPanel ? (
                 <div className="panel-loading">Loading…</div>
               ) : panelView === "list" ? (
-                /* JOB TABLE */
+                /* JOB TABLE — simplified: only job-specific columns (no separate user/mechanic tables here) */
                 <table className="table table-hover table-admin">
                   <thead>
                     <tr>
                       <th>#</th>
                       <th>ID</th>
-                      <th>Customer</th>
                       <th>Service</th>
-                      <th>Mechanic</th>
                       <th>Status</th>
                       <th>Location</th>
                       <th>Created</th>
@@ -507,20 +433,29 @@ const AdminDashboard = () => {
                   </thead>
                   <tbody>
                     {jobs.length === 0 ? (
-                      <tr><td colSpan="8" className="text-center text-muted">No jobs found</td></tr>
+                      <tr><td colSpan="6" className="text-center text-muted">No jobs found</td></tr>
                     ) : (
-                      jobs.map((job, i) => (
-                        <tr key={job.id}>
-                          <td>{i + 1}</td>
-                          <td>{job.id}</td>
-                          <td>{job.customerName}</td>
-                          <td>{job.serviceName}</td>
-                          <td>{job.mechanicName || "Unassigned"}</td>
-                          <td><span className={`badge status-${(job.status || "").toLowerCase()}`}>{job.status}</span></td>
-                          <td>{job.location}</td>
-                          <td>{niceDate(job.createdAt)}</td>
-                        </tr>
-                      ))
+                      jobs
+                        .filter(job => {
+                          // if search present, match against service name or status (simple)
+                          if (!searchInPanel) return true;
+                          const q = searchInPanel.toLowerCase();
+                          return (
+                            (job.serviceName || "").toLowerCase().includes(q) ||
+                            (job.status || "").toLowerCase().includes(q) ||
+                            (job.location || "").toLowerCase().includes(q)
+                          );
+                        })
+                        .map((job, i) => (
+                          <tr key={job.id}>
+                            <td>{i + 1}</td>
+                            <td>{job.id}</td>
+                            <td>{job.serviceName}</td>
+                            <td><span className={`badge status-${(job.status || "").toLowerCase()}`}>{job.status}</span></td>
+                            <td>{job.location}</td>
+                            <td>{niceDate(job.createdAt)}</td>
+                          </tr>
+                        ))
                     )}
                   </tbody>
                 </table>
