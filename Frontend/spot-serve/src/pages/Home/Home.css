@@ -24,7 +24,11 @@ body{font-family:"Poppins",sans-serif;color:#222;margin:0;overflow-x:hidden;back
   background:linear-gradient(135deg,var(--accent-1),var(--accent-2));
   color:#fff; min-height: clamp(60vh, 75vh, 90vh);
   display:flex; align-items:center; justify-content:center; position:relative; padding:3rem 0;
+   padding-top: 0 !important;
+  margin-top: -70px !important; /* same as navbar height */
+  padding-top: calc(3rem + 70px) !important; /* keep internal spacing */
 }
+
 .hero-content{z-index:2;text-align:center;max-width:900px;margin:0 auto;padding:0 1rem}
 .hero-title{margin:0 0 .6rem}.hero-subtitle{margin:.2rem 0 1rem}
 .hero-description{margin-bottom:1.4rem;opacity:.95}

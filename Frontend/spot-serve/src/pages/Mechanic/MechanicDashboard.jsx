@@ -3,6 +3,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import "./MechanicDashboard.css";
+import { useToast } from "../../components/Toast"; // <- use global toast
 
 /* ===========================
    API BASES
@@ -14,18 +15,6 @@ const API_BASE =
 const PAYMENT_API =
   process.env.REACT_APP_API_PAYMENT ||
   "http://localhost:8080/api/payments";
-
-/* ===========================
-   TOAST (Green/Red box)
-=========================== */
-const Toast = ({ message, type }) => {
-  if (!message) return null;
-  return (
-    <div className={`toast-mini ${type === "error" ? "toast-error" : "toast-success"}`}>
-      {message}
-    </div>
-  );
-};
 
 /* ===========================
    MAP MODAL
@@ -75,6 +64,8 @@ const MapModal = ({ show, onClose, lat, lng }) => {
    MAIN PAGE
 =========================== */
 const MechanicDashboard = () => {
+  const { showToast } = useToast(); // <-- use global toast
+
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("available");
@@ -85,15 +76,6 @@ const MechanicDashboard = () => {
   const [paymentJob, setPaymentJob] = useState(null);
   const [extraAmount, setExtraAmount] = useState("");
   const [description, setDescription] = useState("");
-
-  const [toastMsg, setToastMsg] = useState("");
-  const [toastType, setToastType] = useState("success");
-
-  const showToast = (msg, type = "success") => {
-    setToastMsg(msg);
-    setToastType(type);
-    setTimeout(() => setToastMsg(""), 2600);
-  };
 
   /* ===========================
      FETCH JOBS
@@ -150,10 +132,11 @@ const MechanicDashboard = () => {
     } catch (err) {
       console.error(err);
       setJobs([]);
+      showToast("Failed to load jobs", "error");
     } finally {
       setLoading(false);
     }
-  }, [activeTab]);
+  }, [activeTab, showToast]);
 
   useEffect(() => {
     fetchJobs();
@@ -293,8 +276,6 @@ const MechanicDashboard = () => {
   =========================== */
   return (
     <div className="mechanic-dashboard container">
-      <Toast message={toastMsg} type={toastType} />
-
       <header className="top-row">
         <div>
           <h2 className="title">🔧 Mechanic Dashboard</h2>

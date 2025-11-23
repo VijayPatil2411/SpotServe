@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useToast } from "../../components/Toast";
 import "./Registration.css";
 
 const Registration = ({ show, onClose }) => {
@@ -11,7 +12,6 @@ const Registration = ({ show, onClose }) => {
   });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: "", type: "" });
   const [exiting, setExiting] = useState(false); // ✅ brought back only for smooth swap
 
   const popupRef = useRef(null);
@@ -19,7 +19,11 @@ const Registration = ({ show, onClose }) => {
   const API_BASE =
     process.env.REACT_APP_API_BASE || "http://localhost:8080/api/auth";
 
+  const { showToast } = useToast();
+
+  // Reset exiting when modal opens
   useEffect(() => {
+    if (show) setExiting(false);
     document.body.style.overflow = show ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
@@ -47,11 +51,6 @@ const Registration = ({ show, onClose }) => {
     setErrors((s) => ({ ...s, [name]: undefined }));
   };
 
-  const showToast = (message, type = "success") => {
-    setToast({ show: true, message, type });
-    setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
@@ -75,6 +74,7 @@ const Registration = ({ show, onClose }) => {
 
       if (text.toLowerCase().includes("successful")) {
         showToast("Registration successful! 🎉", "success");
+
         setForm({
           name: "",
           email: "",
@@ -83,7 +83,6 @@ const Registration = ({ show, onClose }) => {
           confirmPassword: "",
         });
 
-        // wait for fade-out before showing login
         setTimeout(() => {
           setExiting(true);
           setTimeout(() => {
@@ -128,19 +127,11 @@ const Registration = ({ show, onClose }) => {
 
   return (
     <>
-      {toast.show && (
-        <div className={`toast-notification toast-${toast.type}`}>
-          {toast.message}
-        </div>
-      )}
-
       <div
         className={`reg-overlay ${exiting ? "overlay-exiting" : ""}`}
         role="dialog"
         aria-modal="true"
-        /* <-- ADDED: close when clicking outside (overlay or backdrop) */
         onClick={(e) => {
-          // Close only when click was on overlay or on the backdrop element
           if (
             e.target &&
             e.target.classList &&
@@ -171,7 +162,7 @@ const Registration = ({ show, onClose }) => {
           </div>
 
           <form className="reg-form" onSubmit={handleSubmit} noValidate>
-            {/* form fields same */}
+            {/* Form fields unchanged */}
             <div className="mb-3">
               <label className="form-label">Full Name</label>
               <input
@@ -185,7 +176,6 @@ const Registration = ({ show, onClose }) => {
                 <div className="invalid-feedback">{errors.name}</div>
               )}
             </div>
-
             <div className="mb-3">
               <label className="form-label">Email</label>
               <input
@@ -200,7 +190,6 @@ const Registration = ({ show, onClose }) => {
                 <div className="invalid-feedback">{errors.email}</div>
               )}
             </div>
-
             <div className="mb-3">
               <label className="form-label">Phone</label>
               <input
@@ -214,7 +203,6 @@ const Registration = ({ show, onClose }) => {
                 <div className="invalid-feedback">{errors.phone}</div>
               )}
             </div>
-
             <div className="row">
               <div className="col-md-6 mb-3">
                 <label className="form-label">Password</label>

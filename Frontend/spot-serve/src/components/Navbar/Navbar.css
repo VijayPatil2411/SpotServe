@@ -29,11 +29,10 @@
   z-index: 1000;
   padding: 0.75rem 0;
   backdrop-filter: blur(10px);
+  height: 70px; /* ✅ ADD THIS LINE */
 }
 
-body {
-  padding-top: 70px;
-}
+
 
 /* =========================
    BRAND LOGO
@@ -468,3 +467,4 @@ html {
   white-space: nowrap;
   border-width: 0;
 }
+

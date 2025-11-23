@@ -1,5 +1,6 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../components/Toast";
 import "./Login.css";
 
 const Login = ({ show, onClose }) => {
@@ -9,11 +10,16 @@ const Login = ({ show, onClose }) => {
   const popupRef = useRef(null);
   const [exiting, setExiting] = useState(false);
   const modalRef = useRef(null);
-  const [toast, setToast] = useState({ show: false, message: "", type: "" });
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const API_BASE =
     process.env.REACT_APP_API_BASE || "http://localhost:8080/api/auth";
+
+  // Reset exiting when modal opens
+  useEffect(() => {
+    if (show) setExiting(false);
+  }, [show]);
 
   const validate = () => {
     const e = {};
@@ -26,11 +32,6 @@ const Login = ({ show, onClose }) => {
     const { name, value } = e.target;
     setForm((s) => ({ ...s, [name]: value }));
     setErrors((s) => ({ ...s, [name]: undefined }));
-  };
-
-  const showToast = (message, type = "success") => {
-    setToast({ show: true, message, type });
-    setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
   };
 
   const handleSubmit = async (e) => {
@@ -61,19 +62,13 @@ const Login = ({ show, onClose }) => {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(user));
 
-        window.dispatchEvent(new Event("userLogin"));
-        window.dispatchEvent(new Event("storage"));
+        window.dispatchEvent(new CustomEvent("userLogin", { detail: user }));
+
         showToast("Login successful! 🎉", "success");
 
         setForm({ email: "", password: "" });
-
-        setTimeout(() => {
-          onClose();
-          setTimeout(() => {
-            navigate("/");
-            setTimeout(() => window.location.reload(), 200);
-          }, 100);
-        }, 300);
+        onClose();
+        navigate("/");
       } else {
         showToast(data.error || "Invalid credentials", "error");
       }
@@ -94,116 +89,111 @@ const Login = ({ show, onClose }) => {
     );
   };
 
-  const handleSwapToRegister = () => setExiting(true);
+  const handleSwapToRegister = () => {
+    setExiting(true);
+    setTimeout(() => {
+      onClose();
+      window.dispatchEvent(new CustomEvent("openRegister"));
+    }, 400);
+  };
 
   if (!show) return null;
 
   return (
-    <>
-      {toast.show && (
-        <div className={`toast-notification toast-${toast.type}`}>
-          {toast.message}
-        </div>
-      )}
+    <div
+      className={`login-overlay ${exiting ? "overlay-exiting" : ""}`}
+      role="dialog"
+      aria-modal="true"
+      onClick={(e) => {
+        if (
+          e.target &&
+          (e.target.classList.contains("login-overlay") ||
+            e.target.classList.contains("login-backdrop"))
+        ) {
+          onClose();
+        }
+      }}
+    >
+      <div className="login-backdrop" aria-hidden />
       <div
-        className={`login-overlay ${exiting ? "overlay-exiting" : ""}`}
-        role="dialog"
-        aria-modal="true"
-        /* CLOSE MODAL WHEN CLICKING OUTSIDE */
-        onClick={(e) => {
-          if (
-            e.target &&
-            e.target.classList &&
-            (e.target.classList.contains("login-overlay") ||
-              e.target.classList.contains("login-backdrop"))
-          ) {
-            onClose();
-          }
-        }}
+        className={`login-modal shadow ${exiting ? "exiting" : ""}`}
+        ref={modalRef}
       >
-        <div className="login-backdrop" aria-hidden />
-        <div
-          className={`login-modal shadow ${exiting ? "exiting" : ""}`}
-          ref={modalRef}
-        >
-          <button className="login-close" onClick={onClose}>
-            &times;
-          </button>
+        <button className="login-close" onClick={onClose}>
+          &times;
+        </button>
 
-          <div className="login-header">
-            <div className="login-brand">🔑</div>
-            <div>
-              <h3 className="login-title">Welcome back to SpotServe</h3>
-              <p className="login-sub">Login to access your dashboard</p>
-            </div>
+        <div className="login-header">
+          <div className="login-brand">🔑</div>
+          <div>
+            <h3 className="login-title">Welcome back to SpotServe</h3>
+            <p className="login-sub">Login to access your dashboard</p>
+          </div>
+        </div>
+
+        <form className="login-form" onSubmit={handleSubmit} noValidate>
+          <div className="mb-3">
+            <label className="form-label">Email</label>
+            <input
+              name="email"
+              className={`form-control ${errors.email ? "is-invalid" : ""}`}
+              value={form.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              type="email"
+            />
+            {errors.email && (
+              <div className="invalid-feedback">{errors.email}</div>
+            )}
           </div>
 
-          <form className="login-form" onSubmit={handleSubmit} noValidate>
-            <div className="mb-3">
-              <label className="form-label">Email</label>
-              <input
-                name="email"
-                className={`form-control ${errors.email ? "is-invalid" : ""}`}
-                value={form.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-                type="email"
-              />
-              {errors.email && (
-                <div className="invalid-feedback">{errors.email}</div>
-              )}
-            </div>
+          <div className="mb-3 position-relative">
+            <label className="form-label">Password</label>
+            <input
+              name="password"
+              className={`form-control ${errors.password ? "is-invalid" : ""}`}
+              value={form.password}
+              onChange={handleChange}
+              type="password"
+              placeholder="Password"
+            />
+            {errors.password && (
+              <div className="invalid-feedback">{errors.password}</div>
+            )}
+          </div>
 
-            <div className="mb-3 position-relative">
-              <label className="form-label">Password</label>
-              <input
-                name="password"
-                className={`form-control ${
-                  errors.password ? "is-invalid" : ""
-                }`}
-                value={form.password}
-                onChange={handleChange}
-                type="password"
-                placeholder="Password"
-              />
-              {errors.password && (
-                <div className="invalid-feedback">{errors.password}</div>
-              )}
-            </div>
+          <button
+            type="submit"
+            className="btn login-submit w-100"
+            disabled={submitting}
+          >
+            {submitting ? "Signing in…" : "Login"}
+          </button>
 
+          <div className="login-google-wrap mb-3 mt-2">
             <button
-              type="submit"
-              className="btn login-submit w-100"
-              disabled={submitting}
+              type="button"
+              className="google-btn w-100"
+              onClick={handleGoogleSignIn}
             >
-              {submitting ? "Signing in…" : "Login"}
+              <span className="google-icon">G</span>
+              <span className="google-text">Continue with Google</span>
             </button>
+          </div>
 
-            <div className="login-google-wrap mb-3 mt-2">
-              <button
-                type="button"
-                className="google-btn w-100"
-                onClick={handleGoogleSignIn}
-              >
-                <span className="google-icon">G</span>
-                <span className="google-text">Continue with Google</span>
-              </button>
-            </div>
-
-            <div className="login-footer-text mt-3 text-center">
-              Don't have an account?{" "}
-              <span
-                className="link-like"
-                onClick={handleSwapToRegister}
-                style={{ cursor: "pointer" }}
-              >
-                Register
-              </span>
-            </div>
-          </form>
-        </div>
+          <div className="login-footer-text mt-3 text-center">
+            Don't have an account?{" "}
+            <span
+              className="link-like"
+              onClick={handleSwapToRegister}
+              style={{ cursor: "pointer" }}
+            >
+              Register
+            </span>
+          </div>
+        </form>
       </div>
-    </>
+    </div>
   );
 };
 

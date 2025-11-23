@@ -1,7 +1,9 @@
+// AddVehicleModal.jsx
 import React, { useState } from "react";
-import { Modal, Button, Form, Spinner } from "react-bootstrap";
+import { Modal, Button, Spinner } from "react-bootstrap";
 import api from "../services/api";
 import "./AddVehicleModal.css";
+import { useToast } from "./Toast";
 
 const AddVehicleModal = ({ show, onClose, onVehicleAdded }) => {
   const [vehicle, setVehicle] = useState({
@@ -12,6 +14,7 @@ const AddVehicleModal = ({ show, onClose, onVehicleAdded }) => {
   });
 
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
 
   const handleChange = (e) => {
     setVehicle({ ...vehicle, [e.target.name]: e.target.value });
@@ -28,12 +31,13 @@ const AddVehicleModal = ({ show, onClose, onVehicleAdded }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      alert("Vehicle added successfully!");
+      showToast("Vehicle added successfully!", "success");
+
       setVehicle({ make: "", model: "", plateNo: "", year: "" });
       onVehicleAdded();
       onClose();
     } catch (error) {
-      alert("Failed to add vehicle.");
+      showToast("Failed to add vehicle.", "error");
       console.error(error);
     } finally {
       setLoading(false);
@@ -41,70 +45,64 @@ const AddVehicleModal = ({ show, onClose, onVehicleAdded }) => {
   };
 
   return (
-    <Modal
-  show={show}
-  onHide={onClose}
-  centered
-  className="custom-modal"
->
-
+    <Modal show={show} onHide={onClose} centered className="custom-modal">
       <Modal.Header closeButton>
         <Modal.Title>Add New Vehicle</Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
-        <Form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
+          
+          {/* Make */}
+          <label className="field-label">Make</label>
+          <input
+            type="text"
+            name="make"
+            value={vehicle.make}
+            onChange={handleChange}
+            className="field-input"
+            placeholder="e.g. Hyundai"
+            required
+          />
 
-          <Form.Group className="mb-3">
-            <Form.Label>Make</Form.Label>
-            <Form.Control
-              type="text"
-              name="make"
-              value={vehicle.make}
-              onChange={handleChange}
-              placeholder="e.g. Hyundai"
-              required
-            />
-          </Form.Group>
+          {/* Model */}
+          <label className="field-label">Model</label>
+          <input
+            type="text"
+            name="model"
+            value={vehicle.model}
+            onChange={handleChange}
+            className="field-input"
+            placeholder="e.g. Creta"
+            required
+          />
 
-          <Form.Group className="mb-3">
-            <Form.Label>Model</Form.Label>
-            <Form.Control
-              type="text"
-              name="model"
-              value={vehicle.model}
-              onChange={handleChange}
-              placeholder="e.g. Creta"
-              required
-            />
-          </Form.Group>
+          {/* Plate Number */}
+          <label className="field-label">Plate Number</label>
+          <input
+            type="text"
+            name="plateNo"
+            value={vehicle.plateNo}
+            onChange={handleChange}
+            className="field-input"
+            placeholder="e.g. MH12AB1234"
+            required
+          />
 
-          <Form.Group className="mb-3">
-            <Form.Label>Plate Number</Form.Label>
-            <Form.Control
-              type="text"
-              name="plateNo"
-              value={vehicle.plateNo}
-              onChange={handleChange}
-              placeholder="e.g. MH12AB1234"
-              required
-            />
-          </Form.Group>
+          {/* Year */}
+          <label className="field-label">Year</label>
+          <input
+            type="number"
+            name="year"
+            value={vehicle.year}
+            onChange={handleChange}
+            className="field-input"
+            placeholder="e.g. 2023"
+            required
+          />
 
-          <Form.Group className="mb-3">
-            <Form.Label>Year</Form.Label>
-            <Form.Control
-              type="number"
-              name="year"
-              value={vehicle.year}
-              onChange={handleChange}
-              placeholder="e.g. 2023"
-              required
-            />
-          </Form.Group>
-
-          <div className="text-end">
-            <Button variant="secondary" onClick={onClose} className="me-2">
+          <div className="btn-row">
+            <Button variant="secondary" onClick={onClose} type="button">
               Cancel
             </Button>
 
@@ -119,8 +117,7 @@ const AddVehicleModal = ({ show, onClose, onVehicleAdded }) => {
               )}
             </Button>
           </div>
-
-        </Form>
+        </form>
       </Modal.Body>
     </Modal>
   );

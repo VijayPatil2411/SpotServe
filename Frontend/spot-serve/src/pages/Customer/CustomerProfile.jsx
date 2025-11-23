@@ -1,10 +1,14 @@
+// src/pages/Customer/CustomerProfile.jsx
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 import { Form, Spinner, Row, Col } from "react-bootstrap";
+import { useToast } from "../../components/Toast";
 
 import "./CustomerProfile.css";
 
 const CustomerProfile = () => {
+  const { showToast } = useToast();
+
   const [profile, setProfile] = useState({ name: "", email: "", phone: "" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -12,8 +16,6 @@ const CustomerProfile = () => {
   const [changing, setChanging] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
   const [profileChanged, setProfileChanged] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
 
@@ -27,13 +29,13 @@ const CustomerProfile = () => {
         setProfile(res.data);
       } catch (err) {
         console.error("Failed to fetch profile:", err);
-        setErrorMessage("Failed to load profile. Please refresh.");
+        showToast("Failed to load profile. Please refresh.", "error");
       } finally {
         setLoading(false);
       }
     };
     fetchProfile();
-  }, []);
+  }, [showToast]); // include showToast to satisfy eslint
 
   const calculatePasswordStrength = (password) => {
     let strength = 0;
@@ -47,20 +49,16 @@ const CustomerProfile = () => {
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setSuccessMessage("");
-    setErrorMessage("");
     try {
       const token = localStorage.getItem("token");
       await api.put("/api/customer/profile", profile, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSuccessMessage("✅ Profile updated successfully!");
+      showToast("Profile updated successfully!", "success");
       setProfileChanged(false);
-      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error("Profile update failed:", err);
-      setErrorMessage("❌ Failed to update profile. Please try again.");
-      setTimeout(() => setErrorMessage(""), 3000);
+      showToast("Failed to update profile. Please try again.", "error");
     } finally {
       setSaving(false);
     }
@@ -69,21 +67,17 @@ const CustomerProfile = () => {
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     setChanging(true);
-    setSuccessMessage("");
-    setErrorMessage("");
     try {
       const token = localStorage.getItem("token");
       await api.put("/api/customer/profile/change-password", passwordData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSuccessMessage("✅ Password changed successfully!");
+      showToast("Password changed successfully!", "success");
       setPasswordData({ oldPassword: "", newPassword: "" });
       setPasswordStrength(0);
-      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error("Password change failed:", err);
-      setErrorMessage("❌ Failed to change password. Check old password.");
-      setTimeout(() => setErrorMessage(""), 3000);
+      showToast("Failed to change password. Check old password.", "error");
     } finally {
       setChanging(false);
     }
@@ -117,28 +111,6 @@ const CustomerProfile = () => {
       </div>
 
       <div className="premium-container">
-        {successMessage && (
-          <div className="premium-alert success-type" role="alert">
-            <span className="alert-icon">✅</span>
-            <div className="alert-content">
-              <p className="alert-title">Success</p>
-              <p className="alert-message">{successMessage}</p>
-            </div>
-            <button className="alert-close" onClick={() => setSuccessMessage("")}>×</button>
-          </div>
-        )}
-        
-        {errorMessage && (
-          <div className="premium-alert error-type" role="alert">
-            <span className="alert-icon">❌</span>
-            <div className="alert-content">
-              <p className="alert-title">Error</p>
-              <p className="alert-message">{errorMessage}</p>
-            </div>
-            <button className="alert-close" onClick={() => setErrorMessage("")}>×</button>
-          </div>
-        )}
-
         <Row className="premium-row">
           <Col lg={6} className="col-premium">
             <div className="premium-panel profile-panel">

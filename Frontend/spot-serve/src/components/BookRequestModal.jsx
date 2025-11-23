@@ -6,7 +6,6 @@ const BookRequestModal = ({ show, onClose, service, user }) => {
   const [vehicles, setVehicles] = useState([]);
   const [vehicleId, setVehicleId] = useState("");
   const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
   const [location, setLocation] = useState({ lat: "", lng: "" });
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
   const [closing, setClosing] = useState(false);
@@ -62,7 +61,6 @@ const BookRequestModal = ({ show, onClose, service, user }) => {
         serviceId: service.id,
         vehicleId: vehicleId,
         description,
-        imageUrl,
         location: `${location.lat}, ${location.lng}`,
         pickupLat: location.lat,
         pickupLng: location.lng,
@@ -146,16 +144,8 @@ const BookRequestModal = ({ show, onClose, service, user }) => {
                 />
               </Form.Group>
 
-              {/* IMAGE URL */}
-              <Form.Group className="mb-3">
-                <Form.Label>Image URL (optional)</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                />
-              </Form.Group>
-
+              
+            
               {/* LOCATION */}
               <Form.Group className="mb-3">
                 <Form.Label>Location</Form.Label>

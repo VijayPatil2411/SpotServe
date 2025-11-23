@@ -1,6 +1,8 @@
+// src/pages/Admin/AdminDashboard.jsx
 import React, { useEffect, useState, useMemo } from "react";
 import "./AdminDashboard.css";
 import api from "../../services/api";
+import { useToast } from "../../components/Toast";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080/api";
 
@@ -29,18 +31,17 @@ const AdminDashboard = () => {
   const [usersList, setUsersList] = useState([]);
   const [mechanicsList, setMechanicsList] = useState([]);
 
-  /* TOAST */
-  const [toast, setToast] = useState({ show: false, type: "success", msg: "" });
-  const showToast = (msg, type = "success") => {
-    setToast({ show: true, msg, type });
-    setTimeout(() => setToast({ show: false, msg: "", type: "" }), 2800);
-  };
+  /* GLOBAL TOAST */
+  const { showToast } = useToast();
 
   /** INITIAL LOAD */
   useEffect(() => {
     loadDashboard();
     loadAllJobs();
     loadServices();
+    // silent fetches so KPI fallbacks have real data without opening panels
+    fetchUsersSilent();
+    fetchMechanicsSilent();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -73,6 +74,7 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error("loadAllJobs error:", err);
       setAllJobs([]);
+      showToast("Failed to load jobs", "error");
     }
   };
 
@@ -85,14 +87,11 @@ const AdminDashboard = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-
-          console.log("📊 Stats Response:", data);
-    console.log("👥 Total Users:", data.totalUsers);
-    console.log("🔧 Total Mechanics:", data.totalMechanics);
-    
       setStats(data || {});
-    } catch {
+    } catch (err) {
+      console.error("loadDashboard error:", err);
       setStats({});
+      showToast("Failed to load dashboard stats", "error");
     } finally {
       setLoading(false);
     }
@@ -116,8 +115,10 @@ const AdminDashboard = () => {
       const parsed = parseJobs(raw);
       if (parsed.length) setJobs(parsed);
       else setJobs(allJobs.filter((j) => (j.status || "").toUpperCase() === status));
-    } catch {
+    } catch (err) {
+      console.error(`fetchJobsByStatus(${status}) error:`, err);
       setJobs(allJobs.filter((j) => (j.status || "").toUpperCase() === status));
+      showToast(`Failed to fetch ${status} jobs`, "error");
     } finally {
       setFetchingPanel(false);
     }
@@ -140,8 +141,10 @@ const AdminDashboard = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setServices(res.data || []);
-    } catch {
+    } catch (err) {
+      console.error("loadServices error:", err);
       setServices([]);
+      showToast("Failed to load services", "error");
     }
   };
 
@@ -172,16 +175,17 @@ const AdminDashboard = () => {
         await api.put(`/api/admin/services/${serviceForm.id}`, serviceForm, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        showToast("Service updated!");
+        showToast("Service updated!", "success");
       } else {
         await api.post("/api/admin/services", serviceForm, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        showToast("Service added!");
+        showToast("Service added!", "success");
       }
       setServiceModalOpen(false);
       loadServices();
-    } catch {
+    } catch (err) {
+      console.error("handleSaveService error:", err);
       showToast("Error saving", "error");
     }
   };
@@ -193,9 +197,10 @@ const AdminDashboard = () => {
       await api.delete(`/api/admin/services/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      showToast("Service deleted");
+      showToast("Service deleted", "success");
       loadServices();
-    } catch {
+    } catch (err) {
+      console.error("handleDeleteService error:", err);
       showToast("Delete error", "error");
     }
   };
@@ -209,8 +214,10 @@ const AdminDashboard = () => {
       });
       const data = await res.json();
       setUsersList(Array.isArray(data) ? data : []);
-    } catch {
+    } catch (err) {
+      console.error("loadUsers error:", err);
       setUsersList([]);
+      showToast("Failed to load users", "error");
     } finally {
       setFetchingPanel(false);
     }
@@ -226,14 +233,45 @@ const AdminDashboard = () => {
       });
       const data = await res.json();
       setMechanicsList(Array.isArray(data) ? data : []);
-    } catch {
+    } catch (err) {
+      console.error("loadMechanics error:", err);
       setMechanicsList([]);
+      showToast("Failed to load mechanics", "error");
     } finally {
       setFetchingPanel(false);
     }
     setPanelView("mechanics"); // show mechanics only
     setPanelOpen(true);
   };
+
+  // ---- silent fetchers (do not open panels) ----
+  const fetchUsersSilent = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/users`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      const data = await res.json();
+      setUsersList(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("fetchUsersSilent error:", err);
+      setUsersList([]);
+      // don't spam toast on initial load, but log once
+    }
+  };
+
+  const fetchMechanicsSilent = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/mechanics`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      const data = await res.json();
+      setMechanicsList(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("fetchMechanicsSilent error:", err);
+      setMechanicsList([]);
+    }
+  };
+  // ----------------------------------------------
 
   /** Summary of jobs per mechanic (unchanged) */
   const mechanicsSummary = useMemo(() => {
@@ -254,8 +292,10 @@ const AdminDashboard = () => {
 
   if (loading) return <p className="text-center mt-5">Loading dashboard...</p>;
 
+  // sort mechanicsSummary by count desc to get top mechanic reliably
+  const sortedMechanicsSummary = [...mechanicsSummary].sort((a, b) => b.count - a.count);
   const topMechanic =
-    mechanicsSummary[0] ? `${mechanicsSummary[0].name} (${mechanicsSummary[0].count})` : "-";
+    sortedMechanicsSummary[0] ? `${sortedMechanicsSummary[0].name} (${sortedMechanicsSummary[0].count})` : "-";
 
   const cards = [
     { key: "TOTAL", title: "Total Requests", value: stats.total ?? 0, icon: "📦", onClick: openTotalPanel },
@@ -268,7 +308,8 @@ const AdminDashboard = () => {
     {
       key: "MECHS",
       title: "Total Mechanics",
-      value: stats.totalMechanics ?? mechanicsSummary.length ?? 0,
+      // prefer server stat, fallback to mechanicsList length (we fetch silently on init)
+      value: stats.totalMechanics ?? (mechanicsList ? mechanicsList.length : 0),
       icon: "🔧",
       onClick: () => loadMechanics(),
     },
@@ -276,7 +317,8 @@ const AdminDashboard = () => {
     {
       key: "USERS",
       title: "Total Users",
-      value: stats.totalUsers ?? usersList.length ?? "-",
+      // prefer server stat, fallback to usersList length (we fetch silently on init)
+      value: stats.totalUsers ?? (usersList ? usersList.length : 0),
       icon: "👥",
       onClick: () => loadUsers(),
     },
@@ -293,8 +335,6 @@ const AdminDashboard = () => {
   /** RENDER */
   return (
     <div className="admin-dashboard container mt-4">
-      {toast.show && <div className={`admin-toast toast-${toast.type}`}>{toast.msg}</div>}
-
       <h2 className="fw-bold text-center mb-3">Admin Dashboard</h2>
 
       {/* KPI cards */}
@@ -313,7 +353,7 @@ const AdminDashboard = () => {
 
       {/* Summary strip */}
       <div className="summary-strip">
-        <div>Total Mechanics: <strong>{stats.totalMechanics ?? mechanicsSummary.length}</strong></div>
+        <div>Total Mechanics: <strong>{stats.totalMechanics ?? (mechanicsList ? mechanicsList.length : 0)}</strong></div>
         <div>Total Jobs: <strong>{stats.total ?? allJobs.length}</strong></div>
         {/* <div>Total Users: <strong>{stats.totalUsers ?? "-"}</strong></div> */}
         <div>Last Refresh: <strong>{new Date().toLocaleString()}</strong></div>

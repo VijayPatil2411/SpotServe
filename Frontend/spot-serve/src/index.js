@@ -4,6 +4,7 @@ import './index.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import ToastProvider from "./components/Toast";
 
 
 
@@ -11,8 +12,10 @@ import App from './App';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
+  <ToastProvider>
   <React.StrictMode>
     <App />
   </React.StrictMode>
+  </ToastProvider>
 );
 
