@@ -11,6 +11,8 @@ import {
   Table,
 } from "react-bootstrap";
 
+import ReceiptModal from "../../components/ReceiptModal";  // ⭐ ADDED
+
 const MyRequests = () => {
   const [requests, setRequests] = useState([]);
   const [filteredRequests, setFilteredRequests] = useState([]);
@@ -19,6 +21,8 @@ const MyRequests = () => {
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("recent");
+
+  const [receipt, setReceipt] = useState(null); // ⭐ ADDED
 
   useEffect(() => {
     fetchRequests();
@@ -34,15 +38,9 @@ const MyRequests = () => {
       .filter((r) => {
         const s = searchTerm.toLowerCase();
         return (
-          String(r.serviceName || "")
-            .toLowerCase()
-            .includes(s) ||
-          String(r.vehicleId || "")
-            .toLowerCase()
-            .includes(s) ||
-          String(r.location || "")
-            .toLowerCase()
-            .includes(s)
+          String(r.serviceName || "").toLowerCase().includes(s) ||
+          String(r.vehicleId || "").toLowerCase().includes(s) ||
+          String(r.location || "").toLowerCase().includes(s)
         );
       })
       .sort((a, b) =>
@@ -91,7 +89,9 @@ const MyRequests = () => {
 
       setTimeout(() => {
         setRequests((prev) =>
-          prev.map((req) => (req.id === id ? { ...req, fading: false } : req))
+          prev.map((req) =>
+            req.id === id ? { ...req, fading: false } : req
+          )
         );
       }, 600);
     } catch (error) {
@@ -103,11 +103,12 @@ const MyRequests = () => {
   };
 
   const fetchOtp = async (jobId) => {
-    const token = localStorage.getItem("token");
     try {
+      const token = localStorage.getItem("token");
       const res = await api.get(`/api/customer/jobs/${jobId}/otp`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       if (res.data.otp) {
         alert(`🔢 OTP: ${res.data.otp}`);
       } else {
@@ -124,6 +125,20 @@ const MyRequests = () => {
       return;
     }
     window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  // ⭐ ADDED — Fetch Receipt
+  const viewReceipt = async (jobId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await api.get(`/api/customer/jobs/${jobId}/receipt`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setReceipt(res.data);
+    } catch (error) {
+      alert("Unable to load receipt.");
+    }
   };
 
   const getStatusIcon = (status) => {
@@ -154,7 +169,7 @@ const MyRequests = () => {
     const labels = {
       PENDING: "Pending",
       ACCEPTED: "Accepted",
-      ONGOING: "Ongoing",
+      Ongoing: "Ongoing",
       COMPLETED: "Completed",
       PAYMENT_PENDING: "Payment Pending",
       CANCELLED: "Cancelled",
@@ -183,7 +198,8 @@ const MyRequests = () => {
   return (
     <div className="my-requests-wrapper">
       <Container fluid className="py-4">
-        {/* Compact KPI Section */}
+      
+        {/* KPI Cards */}
         <div className="kpi-section mb-4">
           <Row className="g-2">
             <Col xs={6} sm={3} className="mb-2">
@@ -195,6 +211,7 @@ const MyRequests = () => {
                 </div>
               </div>
             </Col>
+
             <Col xs={6} sm={3} className="mb-2">
               <div className="kpi-card kpi-completed">
                 <div className="kpi-icon">✅</div>
@@ -204,6 +221,7 @@ const MyRequests = () => {
                 </div>
               </div>
             </Col>
+
             <Col xs={6} sm={3} className="mb-2">
               <div className="kpi-card kpi-cancelled">
                 <div className="kpi-icon">❌</div>
@@ -213,6 +231,7 @@ const MyRequests = () => {
                 </div>
               </div>
             </Col>
+
             <Col xs={6} sm={3} className="mb-2">
               <div className="kpi-card kpi-total">
                 <div className="kpi-icon">📊</div>
@@ -228,12 +247,10 @@ const MyRequests = () => {
         {/* Title */}
         <div className="page-header mb-3">
           <h2 className="page-title">📋 My Requests</h2>
-          <p className="page-subtitle">
-            Track and manage your service requests
-          </p>
+          <p className="page-subtitle">Track and manage your service requests</p>
         </div>
 
-        {/* Compact Filters */}
+        {/* Filters */}
         <div className="filters-bar mb-3">
           <Row className="g-2">
             <Col md={4} xs={12}>
@@ -246,6 +263,7 @@ const MyRequests = () => {
                 size="sm"
               />
             </Col>
+
             <Col md={4} xs={6}>
               <Form.Select
                 value={filterStatus}
@@ -253,13 +271,14 @@ const MyRequests = () => {
                 className="filter-input compact"
                 size="sm"
               >
-                {uniqueStatuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status === "ALL" ? "📍 All Status" : status}
+                {uniqueStatuses.map((s) => (
+                  <option key={s} value={s}>
+                    {s === "ALL" ? "📍 All Status" : s}
                   </option>
                 ))}
               </Form.Select>
             </Col>
+
             <Col md={4} xs={6}>
               <Form.Select
                 value={sortBy}
@@ -274,15 +293,10 @@ const MyRequests = () => {
           </Row>
         </div>
 
-        {/* Table Section */}
+        {/* Table */}
         {loading ? (
           <div className="text-center py-3">
-            <div
-              className="spinner-border spinner-border-sm text-primary mb-2"
-              role="status"
-            >
-              <span className="visually-hidden">Loading...</span>
-            </div>
+            <div className="spinner-border spinner-border-sm text-primary mb-2" />
             <p className="text-muted small">Loading...</p>
           </div>
         ) : filteredRequests.length === 0 ? (
@@ -305,9 +319,11 @@ const MyRequests = () => {
                     <th>Action</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {filteredRequests.map((req, index) => {
                     const status = (req.status || "").toUpperCase();
+
                     return (
                       <tr
                         key={req.id}
@@ -315,65 +331,57 @@ const MyRequests = () => {
                           status === "CANCELLED" ? "cancelled-row" : ""
                         }`}
                       >
-                        <td className="col-num">{index + 1}</td>
-                        <td className="col-service">
-                          <span className="service-item">
-                            {req.serviceName || "N/A"}
-                          </span>
-                        </td>
-                        <td className="col-vehicle">
-                          <small>{req.vehicleId || "-"}</small>
-                        </td>
-                        <td className="col-location">
-                          <small>{req.location || "-"}</small>
-                        </td>
-                        <td className="col-status">
-                          <Badge
-                            bg={getStatusColor(status)}
-                            className="status-badge-small"
-                          >
+                        <td>{index + 1}</td>
+                        <td>{req.serviceName || "N/A"}</td>
+                        <td>{req.vehicleId || "-"}</td>
+                        <td>{req.location || "-"}</td>
+
+                        <td>
+                          <Badge bg={getStatusColor(status)}>
                             {getStatusIcon(status)} {getStatusLabel(status)}
                           </Badge>
                         </td>
-                        <td className="col-date">
-                          <small>
-                            {new Date(req.createdAt).toLocaleDateString()}
-                          </small>
-                        </td>
-                        <td className="col-action">
+
+                        <td>{new Date(req.createdAt).toLocaleDateString()}</td>
+
+                        {/* ⭐ Updated Action Column */}
+                        <td>
                           {status === "PENDING" ? (
                             <Button
                               variant="outline-danger"
                               size="sm"
-                              className="btn-action d-flex align-items-center gap-1"
-                              disabled={cancelingId === req.id}
                               onClick={() => handleCancel(req.id)}
-                              title="Cancel Request"
+                              disabled={cancelingId === req.id}
                             >
-                              ❌ <span className="fw-bold">Cancel</span>
+                              ❌ Cancel
                             </Button>
                           ) : status === "ACCEPTED" ? (
                             <Button
                               variant="outline-primary"
                               size="sm"
-                              className="btn-action d-flex align-items-center gap-1"
                               onClick={() => fetchOtp(req.id)}
-                              title="View OTP"
                             >
-                              🔢 <span className="fw-bold">View OTP</span>
+                              🔢 View OTP
                             </Button>
-                          ) : status === "PAYMENT_PENDING" && req.paymentUrl ? (
+                          ) : status === "PAYMENT_PENDING" &&
+                            req.paymentUrl ? (
                             <Button
                               variant="success"
                               size="sm"
-                              className="btn-action d-flex align-items-center gap-1"
                               onClick={() => handlePayNow(req.paymentUrl)}
-                              title="Payment Pending"
                             >
-                              💳 <span className="fw-bold">Pay Now</span>
+                              💳 Pay Now
+                            </Button>
+                          ) : status === "COMPLETED" ? (
+                            <Button
+                              variant="outline-success"
+                              size="sm"
+                              onClick={() => viewReceipt(req.id)}  // ⭐ ADDED
+                            >
+                              🧾 Receipt
                             </Button>
                           ) : (
-                            <span className="action-none">—</span>
+                            <span>—</span>
                           )}
                         </td>
                       </tr>
@@ -385,7 +393,7 @@ const MyRequests = () => {
           </div>
         )}
 
-        {/* Results Info */}
+        {/* Footer */}
         {!loading && filteredRequests.length > 0 && (
           <div className="results-footer text-center mt-2">
             <small className="text-muted">
@@ -394,6 +402,11 @@ const MyRequests = () => {
           </div>
         )}
       </Container>
+
+      {/* ⭐ Receipt Modal */}
+      {receipt && (
+        <ReceiptModal receipt={receipt} onClose={() => setReceipt(null)} />
+      )}
     </div>
   );
 };

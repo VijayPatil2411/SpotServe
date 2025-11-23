@@ -1,5 +1,7 @@
 package com.spotserve.config;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +13,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class SecurityConfig {
@@ -21,35 +26,63 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.csrf(csrf -> csrf.disable())
+        http
+            // enable CORS and use our corsConfigurationSource bean
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                .authorizeHttpRequests(auth -> auth
+            // disable CSRF for API usage
+            .csrf(csrf -> csrf.disable())
 
-                        // 🔓 Public (No login needed)
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/services/**").permitAll()
-                        .requestMatchers("/api/payments/**").permitAll()
+            .authorizeHttpRequests(auth -> auth
 
-                        // 🔐 Customer Endpoints (Require login)
-                        .requestMatchers("/api/customer/**").authenticated()
+                // 🔓 Public (No login needed)
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/services/**").permitAll()
+                .requestMatchers("/api/payments/**").permitAll()
 
-                        // 🔐 Mechanic Endpoints (Require login)
-                        .requestMatchers("/api/mechanic/**").authenticated()
+                // 🔐 Customer Endpoints (Require login)
+                .requestMatchers("/api/customer/**").authenticated()
 
-                        // 🔐 Admin Service Management (Require admin login)
-                        .requestMatchers("/api/admin/services/**").hasRole("ADMIN")
+                // 🔐 Mechanic Endpoints (Require login)
+                .requestMatchers("/api/mechanic/**").authenticated()
 
-                        // Everything else requires authentication
-                        .anyRequest().authenticated()
-                )
+                // 🔐 Admin Service Management (Require admin login)
+                .requestMatchers("/api/admin/services/**").hasRole("ADMIN")
 
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                // Everything else requires authentication
+                .anyRequest().authenticated()
+            )
 
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            // stateless sessions (JWT)
+            .sessionManagement(session ->
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+
+            // place JWT filter before username/password filter
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * CORS configuration source used by Spring Security.
+     * - use allowedOriginPatterns so allowCredentials(true) is allowed (works with Spring 6)
+     * - allow common methods and headers
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        // allow your frontend origin(s). You can add production origins here later.
+        config.setAllowedOriginPatterns(List.of("http://localhost:3000"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // apply CORS for all endpoints
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     @Bean

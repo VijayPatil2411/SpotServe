@@ -428,11 +428,7 @@ const MechanicDashboard = () => {
                       Base: ₹{job?.service?.basePrice || 0}
                     </div>
 
-                    {job.status === "Completed" && (
-                      <button className="btn-primary small">
-                        View Receipt
-                      </button>
-                    )}
+                    
                   </div>
                 )}
               </div>

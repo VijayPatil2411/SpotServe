@@ -29,7 +29,7 @@ public class PaymentController {
     }
 
     /**
-     * ✅ Step 1: Mechanic completes job → create Stripe payment URL (customer pays later)
+     * Mechanic completes job → create Stripe payment URL
      */
     @PostMapping("/create-checkout-session")
     public ResponseEntity<?> createCheckoutSession(@RequestBody Map<String, Object> requestData) {
@@ -38,12 +38,14 @@ public class PaymentController {
 
             Long jobId = Long.parseLong(requestData.get("jobId").toString());
             String description = (String) requestData.getOrDefault("description", "Service Payment");
+
             double baseAmount = Double.parseDouble(requestData.get("baseAmount").toString());
             double extraAmount = Double.parseDouble(requestData.getOrDefault("extraAmount", 0).toString());
 
-            long totalAmount = Math.round((baseAmount + extraAmount) * 100);
+            double total = baseAmount + extraAmount;
+            long totalAmount = Math.round(total * 100);
 
-            // ✅ Create Stripe checkout session
+            // Create Stripe checkout session
             SessionCreateParams params = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
                     .setSuccessUrl("http://localhost:3000/payment-success?jobId=" + jobId)
@@ -69,18 +71,23 @@ public class PaymentController {
 
             Session session = Session.create(params);
 
-            // ✅ Update job record with payment link & pending status
+            // 🔥 Save amount + payment URL + status
             Optional<Job> jobOpt = jobRepository.findById(jobId);
             if (jobOpt.isPresent()) {
                 Job job = jobOpt.get();
-                job.setPaymentUrl(session.getUrl());
+
+                job.setExtraAmount(extraAmount);       // <-- FIX 1
+                job.setTotalAmount(total);             // <-- FIX 2
+                job.setPaymentUrl(session.getUrl());   // <-- already exists
                 job.setStatus("PAYMENT_PENDING");
-                jobRepository.save(job);
+
+                jobRepository.save(job);               // <-- FIX 3 (persist)
             }
 
             Map<String, Object> response = new HashMap<>();
             response.put("checkoutUrl", session.getUrl());
             response.put("message", "Payment link created and saved for customer.");
+
             return ResponseEntity.ok(response);
 
         } catch (StripeException e) {
@@ -93,18 +100,22 @@ public class PaymentController {
     }
 
     /**
-     * ✅ Step 2: Customer completes payment → mark job as Completed.
+     * Customer completed payment → mark job as Completed
      */
     @PostMapping("/mark-success")
     public ResponseEntity<?> markPaymentSuccess(@RequestParam Long jobId) {
+
         Optional<Job> jobOpt = jobRepository.findById(jobId);
         if (jobOpt.isPresent()) {
             Job job = jobOpt.get();
+
             job.setStatus("Completed");
             job.setPaymentUrl(null);
+
             jobRepository.save(job);
             return ResponseEntity.ok(Map.of("message", "Job marked as Completed after successful payment."));
         }
+
         return ResponseEntity.status(404).body(Map.of("error", "Job not found"));
     }
 }
