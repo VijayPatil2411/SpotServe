@@ -1,14 +1,23 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
+import { useToast } from "../../components/Toast";
 
 const PaymentSuccess = () => {
+  const { showToast } = useToast();
+  const hasRun = useRef(false); // ✅ prevents double execution in React Strict Mode
+
   useEffect(() => {
+    if (hasRun.current) return; // ❌ stop the second effect run
+    hasRun.current = true; // ✅ block any future run
+
     const confirmPayment = async () => {
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get("jobId");
 
       if (!jobId) {
-        alert("❌ Invalid payment confirmation link.");
-        window.location.href = "/customer/dashboard";
+        showToast("❌ Invalid payment confirmation link.", "error");
+        setTimeout(() => {
+          window.location.href = "/customer/dashboard";
+        }, 3000);
         return;
       }
 
@@ -19,22 +28,22 @@ const PaymentSuccess = () => {
         );
 
         if (res.ok) {
-          const data = await res.json().catch(() => ({}));
-          console.log("Payment confirmed:", data);
-          alert("✅ Payment successful! Thank you for your payment.");
+          showToast("✅ Payment successful! Thank you for your payment.", "success");
         } else {
-          alert("⚠️ Payment confirmed, but server did not respond properly.");
+          const errData = await res.json().catch(() => ({}));
+          const msg =
+            errData.message || errData.error || "⚠️ Server issue during confirmation.";
+          showToast(msg, "warning");
         }
-
-        // ⏳ Small delay before redirect for UX polish
-        setTimeout(() => {
-          window.location.href = "/customer/dashboard";
-        }, 2000);
       } catch (err) {
-        console.error("Error confirming payment:", err);
-        alert("⚠️ Error confirming payment status. Please contact support.");
-        window.location.href = "/customer/dashboard";
+        console.error("Payment confirm error:", err);
+        showToast("⚠️ Error confirming payment status.", "error");
       }
+
+      // redirect after 3 sec
+      setTimeout(() => {
+        window.location.href = "/customer/dashboard";
+      }, 3000);
     };
 
     confirmPayment();
@@ -48,6 +57,7 @@ const PaymentSuccess = () => {
       <p className="text-muted mb-4">
         Please wait while we confirm your payment. You will be redirected shortly.
       </p>
+
       <div
         className="spinner-border text-success"
         role="status"

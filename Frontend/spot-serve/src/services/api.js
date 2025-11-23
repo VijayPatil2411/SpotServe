@@ -1,9 +1,7 @@
 import axios from "axios";
 
-// Backend base URL (adjust if needed)
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080";
 
-// Create axios instance
 const api = axios.create({
   baseURL: API_BASE,
   headers: {
@@ -11,7 +9,15 @@ const api = axios.create({
   },
 });
 
-// Global interceptor (optional but useful)
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Optional response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {

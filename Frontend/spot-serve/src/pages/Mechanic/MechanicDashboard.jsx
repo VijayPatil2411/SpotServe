@@ -76,6 +76,7 @@ const MechanicDashboard = () => {
   const [paymentJob, setPaymentJob] = useState(null);
   const [extraAmount, setExtraAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [loadingPayment, setLoadingPayment] = useState(false); // <-- added
 
   /* ===========================
      FETCH JOBS
@@ -236,6 +237,7 @@ const MechanicDashboard = () => {
         description || `Payment for ${job.serviceName || `job #${job.id}`}`,
     };
 
+    setLoadingPayment(true); // <-- start loading
     try {
       const res = await fetch(`${PAYMENT_API}/create-checkout-session`, {
         method: "POST",
@@ -255,6 +257,8 @@ const MechanicDashboard = () => {
       } else showToast("Failed to create payment", "error");
     } catch {
       showToast("Network error", "error");
+    } finally {
+      setLoadingPayment(false); // <-- stop loading
     }
   };
 
@@ -427,8 +431,6 @@ const MechanicDashboard = () => {
                     <div className="muted small">
                       Base: ₹{job?.service?.basePrice || 0}
                     </div>
-
-                    
                   </div>
                 )}
               </div>
@@ -445,7 +447,11 @@ const MechanicDashboard = () => {
               <div className="modal-title">
                 <h5>Complete Job & Payment</h5>
               </div>
-              <button className="btn-close" onClick={() => setPaymentJob(null)}>
+              <button
+                className="btn-close"
+                onClick={() => setPaymentJob(null)}
+                disabled={loadingPayment} // disable while loading
+              >
                 ✕
               </button>
             </div>
@@ -460,19 +466,78 @@ const MechanicDashboard = () => {
               placeholder="Extra Amount"
               value={extraAmount}
               onChange={(e) => setExtraAmount(e.target.value)}
+              disabled={loadingPayment} // disable while loading
             />
 
             <textarea
               placeholder="Description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              disabled={loadingPayment} // disable while loading
             />
 
             <div className="modal-actions-row">
-              <button className="btn-success wide" onClick={handleSendPaymentLink}>
-                Send Payment Link
+              <button
+                className="btn-success wide"
+                onClick={handleSendPaymentLink}
+                disabled={loadingPayment} // prevent double submits
+              >
+                {loadingPayment ? (
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    {/* Inline SVG spinner with animateTransform so no extra CSS needed */}
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                    >
+                      <g transform="translate(12,12)">
+                        <g>
+                          <circle
+                            cx="0"
+                            cy="0"
+                            r="10"
+                            fill="none"
+                            stroke="rgba(255,255,255,0.3)"
+                            strokeWidth="3"
+                          />
+                          <path
+                            d="M10 0 A10 10 0 0 1 6.123 8.09"
+                            fill="none"
+                            stroke="white"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                          >
+                            <animateTransform
+                              attributeName="transform"
+                              type="rotate"
+                              from="0"
+                              to="360"
+                              dur="1s"
+                              repeatCount="indefinite"
+                            />
+                          </path>
+                        </g>
+                      </g>
+                    </svg>
+                    Sending...
+                  </span>
+                ) : (
+                  "Send Payment Link"
+                )}
               </button>
-              <button className="btn-outline" onClick={() => setPaymentJob(null)}>
+              <button
+                className="btn-outline"
+                onClick={() => setPaymentJob(null)}
+                disabled={loadingPayment} // disable while loading
+              >
                 Cancel
               </button>
             </div>
