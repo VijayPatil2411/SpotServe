@@ -12,12 +12,14 @@ const Registration = ({ show, onClose }) => {
   });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [exiting, setExiting] = useState(false); // ✅ brought back only for smooth swap
+  const [exiting, setExiting] = useState(false);
 
   const popupRef = useRef(null);
   const modalRef = useRef(null);
   const API_BASE =
     process.env.REACT_APP_API_BASE || "http://localhost:8080/api/auth";
+  const BACKEND_ORIGIN =
+    process.env.REACT_APP_BACKEND_ORIGIN || "http://localhost:8080";
 
   const { showToast } = useToast();
 
@@ -30,6 +32,45 @@ const Registration = ({ show, onClose }) => {
       if (popupRef.current && !popupRef.current.closed) popupRef.current.close();
     };
   }, [show]);
+
+  // ✅ Google OAuth listener (only active when modal is open)
+  useEffect(() => {
+    if (!show) return; // attach listener only when modal is open
+
+    const onMessage = (e) => {
+      if (e.origin !== BACKEND_ORIGIN) return;
+      const { token, user, error } = e.data || {};
+
+      // Remove listener immediately
+      window.removeEventListener("message", onMessage);
+
+      if (token) {
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        window.dispatchEvent(new CustomEvent("userLogin", { detail: user }));
+
+        try {
+          if (popupRef.current && !popupRef.current.closed) popupRef.current.close();
+        } catch (err) {}
+
+        setExiting(true);
+        setTimeout(() => {
+          onClose();
+        }, 400);
+
+        showToast("Login successful! 🎉", "success");
+      } else if (error) {
+        showToast(error || "Authentication failed", "error");
+      }
+    };
+
+    window.addEventListener("message", onMessage);
+
+    return () => {
+      window.removeEventListener("message", onMessage);
+      if (popupRef.current && !popupRef.current.closed) popupRef.current.close();
+    };
+  }, [show, BACKEND_ORIGIN, onClose, showToast]);
 
   const validate = () => {
     const e = {};
@@ -126,145 +167,143 @@ const Registration = ({ show, onClose }) => {
   if (!show) return null;
 
   return (
-    <>
+    <div
+      className={`reg-overlay ${exiting ? "overlay-exiting" : ""}`}
+      role="dialog"
+      aria-modal="true"
+      onClick={(e) => {
+        if (
+          e.target &&
+          e.target.classList &&
+          (e.target.classList.contains("reg-overlay") ||
+            e.target.classList.contains("reg-backdrop"))
+        ) {
+          onClose();
+        }
+      }}
+    >
+      <div className="reg-backdrop" aria-hidden />
       <div
-        className={`reg-overlay ${exiting ? "overlay-exiting" : ""}`}
-        role="dialog"
-        aria-modal="true"
-        onClick={(e) => {
-          if (
-            e.target &&
-            e.target.classList &&
-            (e.target.classList.contains("reg-overlay") ||
-              e.target.classList.contains("reg-backdrop"))
-          ) {
-            onClose();
-          }
-        }}
+        className={`reg-modal shadow ${exiting ? "exiting" : ""}`}
+        ref={modalRef}
       >
-        <div className="reg-backdrop" aria-hidden />
-        <div
-          className={`reg-modal shadow ${exiting ? "exiting" : ""}`}
-          ref={modalRef}
-        >
-          <button className="reg-close" onClick={onClose}>
-            &times;
-          </button>
+        <button className="reg-close" onClick={onClose}>
+          &times;
+        </button>
 
-          <div className="reg-header">
-            <div className="reg-brand">🚗</div>
-            <div>
-              <h3 className="reg-title">Create your SpotServe account</h3>
-              <p className="reg-sub">
-                Sign up to manage your vehicles and services
-              </p>
+        <div className="reg-header">
+          <div className="reg-brand">🚗</div>
+          <div>
+            <h3 className="reg-title">Create your SpotServe account</h3>
+            <p className="reg-sub">
+              Sign up to manage your vehicles and services
+            </p>
+          </div>
+        </div>
+
+        <form className="reg-form" onSubmit={handleSubmit} noValidate>
+          {/* Form fields unchanged */}
+          <div className="mb-3">
+            <label className="form-label">Full Name</label>
+            <input
+              name="name"
+              className={`form-control ${errors.name ? "is-invalid" : ""}`}
+              value={form.name}
+              onChange={handleChange}
+              placeholder="Your name"
+            />
+            {errors.name && (
+              <div className="invalid-feedback">{errors.name}</div>
+            )}
+          </div>
+          <div className="mb-3">
+            <label className="form-label">Email</label>
+            <input
+              name="email"
+              className={`form-control ${errors.email ? "is-invalid" : ""}`}
+              value={form.email}
+              onChange={handleChange}
+              type="email"
+              placeholder="you@example.com"
+            />
+            {errors.email && (
+              <div className="invalid-feedback">{errors.email}</div>
+            )}
+          </div>
+          <div className="mb-3">
+            <label className="form-label">Phone</label>
+            <input
+              name="phone"
+              className={`form-control ${errors.phone ? "is-invalid" : ""}`}
+              value={form.phone}
+              onChange={handleChange}
+              placeholder="10-digit phone number"
+            />
+            {errors.phone && (
+              <div className="invalid-feedback">{errors.phone}</div>
+            )}
+          </div>
+          <div className="row">
+            <div className="col-md-6 mb-3">
+              <label className="form-label">Password</label>
+              <input
+                name="password"
+                className={`form-control ${errors.password ? "is-invalid" : ""}`}
+                value={form.password}
+                onChange={handleChange}
+                type="password"
+              />
+              {errors.password && (
+                <div className="invalid-feedback">{errors.password}</div>
+              )}
+            </div>
+            <div className="col-md-6 mb-3">
+              <label className="form-label">Confirm Password</label>
+              <input
+                name="confirmPassword"
+                className={`form-control ${errors.confirmPassword ? "is-invalid" : ""}`}
+                value={form.confirmPassword}
+                onChange={handleChange}
+                type="password"
+              />
+              {errors.confirmPassword && (
+                <div className="invalid-feedback">{errors.confirmPassword}</div>
+              )}
             </div>
           </div>
 
-          <form className="reg-form" onSubmit={handleSubmit} noValidate>
-            {/* Form fields unchanged */}
-            <div className="mb-3">
-              <label className="form-label">Full Name</label>
-              <input
-                name="name"
-                className={`form-control ${errors.name ? "is-invalid" : ""}`}
-                value={form.name}
-                onChange={handleChange}
-                placeholder="Your name"
-              />
-              {errors.name && (
-                <div className="invalid-feedback">{errors.name}</div>
-              )}
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Email</label>
-              <input
-                name="email"
-                className={`form-control ${errors.email ? "is-invalid" : ""}`}
-                value={form.email}
-                onChange={handleChange}
-                type="email"
-                placeholder="you@example.com"
-              />
-              {errors.email && (
-                <div className="invalid-feedback">{errors.email}</div>
-              )}
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Phone</label>
-              <input
-                name="phone"
-                className={`form-control ${errors.phone ? "is-invalid" : ""}`}
-                value={form.phone}
-                onChange={handleChange}
-                placeholder="10-digit phone number"
-              />
-              {errors.phone && (
-                <div className="invalid-feedback">{errors.phone}</div>
-              )}
-            </div>
-            <div className="row">
-              <div className="col-md-6 mb-3">
-                <label className="form-label">Password</label>
-                <input
-                  name="password"
-                  className={`form-control ${errors.password ? "is-invalid" : ""}`}
-                  value={form.password}
-                  onChange={handleChange}
-                  type="password"
-                />
-                {errors.password && (
-                  <div className="invalid-feedback">{errors.password}</div>
-                )}
-              </div>
-              <div className="col-md-6 mb-3">
-                <label className="form-label">Confirm Password</label>
-                <input
-                  name="confirmPassword"
-                  className={`form-control ${errors.confirmPassword ? "is-invalid" : ""}`}
-                  value={form.confirmPassword}
-                  onChange={handleChange}
-                  type="password"
-                />
-                {errors.confirmPassword && (
-                  <div className="invalid-feedback">{errors.confirmPassword}</div>
-                )}
-              </div>
-            </div>
+          <button
+            type="submit"
+            className="btn reg-submit w-100"
+            disabled={submitting}
+          >
+            {submitting ? "Registering…" : "Register"}
+          </button>
 
+          <div className="reg-google-wrap mb-3 mt-2">
             <button
-              type="submit"
-              className="btn reg-submit w-100"
-              disabled={submitting}
+              type="button"
+              className="google-btn w-100"
+              onClick={handleGoogleSignIn}
             >
-              {submitting ? "Registering…" : "Register"}
+              <span className="google-icon">G</span>
+              <span className="google-text">Continue with Google</span>
             </button>
+          </div>
 
-            <div className="reg-google-wrap mb-3 mt-2">
-              <button
-                type="button"
-                className="google-btn w-100"
-                onClick={handleGoogleSignIn}
-              >
-                <span className="google-icon">G</span>
-                <span className="google-text">Continue with Google</span>
-              </button>
-            </div>
-
-            <div className="reg-footer-text mt-3 text-center">
-              Already have an account?{" "}
-              <span
-                className="link-like"
-                onClick={handleSwapToLogin}
-                style={{ cursor: "pointer" }}
-              >
-                Login
-              </span>
-            </div>
-          </form>
-        </div>
+          <div className="reg-footer-text mt-3 text-center">
+            Already have an account?{" "}
+            <span
+              className="link-like"
+              onClick={handleSwapToLogin}
+              style={{ cursor: "pointer" }}
+            >
+              Login
+            </span>
+          </div>
+        </form>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -385,12 +385,19 @@ const AdminDashboard = () => {
                   <td>{s.name}</td>
                   <td>₹{s.basePrice}</td>
                   <td>
-                    <button className="btn btn-sm btn-outline-primary me-2" onClick={() => openEditService(s)}>
-                      Edit
-                    </button>
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteService(s.id)}>
-                      Delete
-                    </button>
+                    <button
+  className="btn btn-sm btn-custom btn-edit me-2"
+  onClick={() => openEditService(s)}
+>
+  Edit
+</button>
+<button
+  className="btn btn-sm btn-custom btn-delete"
+  onClick={() => handleDeleteService(s.id)}
+>
+  Delete
+</button>
+
                   </td>
                 </tr>
               ))

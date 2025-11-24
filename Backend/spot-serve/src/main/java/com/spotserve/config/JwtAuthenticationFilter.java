@@ -8,11 +8,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import java.io.IOException;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -39,19 +40,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         jwt = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(jwt);
+        userEmail = jwtService.extractUsername(jwt); // ✅ uses updated method
 
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
             var userOpt = userRepository.findByEmail(userEmail);
+
             if (userOpt.isPresent() && jwtService.validateToken(jwt, userEmail)) {
+
+                String role = jwtService.extractRole(jwt);
+                String password = userOpt.get().getPassword();
+
+                // ⭐ If Google Login user => password may be null
+                if (password == null) password = "";
+
                 UserDetails userDetails = org.springframework.security.core.userdetails.User
                         .withUsername(userOpt.get().getEmail())
-                        .password(userOpt.get().getPassword())
-                        .roles(userOpt.get().getRole())
+                        .password(password)
+                        .roles(role)
                         .build();
 
                 UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+
                 authToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );

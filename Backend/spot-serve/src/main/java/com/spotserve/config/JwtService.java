@@ -13,13 +13,14 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "supersecretkeyforspotserveproject123456789"; // at least 32 chars
+    private static final String SECRET_KEY = "supersecretkeyforspotserveproject123456789"; 
     private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10 hours
 
     private Key getSignKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
+    // Generate Token
     public String generateToken(String email, String role) {
         return Jwts.builder()
                 .setSubject(email)
@@ -30,19 +31,33 @@ public class JwtService {
                 .compact();
     }
 
+    // Validate token
     public boolean validateToken(String token, String email) {
-        final String username = extractUsername(token);
+        final String username = extractEmail(token);
         return (username.equals(email) && !isTokenExpired(token));
     }
 
-    public String extractUsername(String token) {
+    // Extract Email (RENAMED)
+    public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
+    // Alias for JwtAuthenticationFilter
+    public String extractUsername(String token) {
+        return extractEmail(token);
+    }
+
+    // Extract Role
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
+    }
+
+    // Extract Expiration
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
+    // Claim extractor
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);

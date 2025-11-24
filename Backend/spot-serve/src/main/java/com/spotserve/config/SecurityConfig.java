@@ -37,16 +37,18 @@ public class SecurityConfig {
 
                 // 🔓 Public (No login needed)
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/auth/google/**").permitAll()   // ✅ ADDED
+                .requestMatchers("/oauth2/**").permitAll()            // ✅ ADDED
                 .requestMatchers("/api/services/**").permitAll()
                 .requestMatchers("/api/payments/**").permitAll()
 
-                // 🔐 Customer Endpoints (Require login)
+                // 🔐 Customer Endpoints
                 .requestMatchers("/api/customer/**").authenticated()
 
-                // 🔐 Mechanic Endpoints (Require login)
+                // 🔐 Mechanic Endpoints
                 .requestMatchers("/api/mechanic/**").authenticated()
 
-                // 🔐 Admin Service Management (Require admin login)
+                // 🔐 Admin Service Management
                 .requestMatchers("/api/admin/services/**").hasRole("ADMIN")
 
                 // Everything else requires authentication
@@ -66,21 +68,17 @@ public class SecurityConfig {
 
     /**
      * CORS configuration source used by Spring Security.
-     * - use allowedOriginPatterns so allowCredentials(true) is allowed (works with Spring 6)
-     * - allow common methods and headers
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // allow your frontend origin(s). You can add production origins here later.
         config.setAllowedOriginPatterns(List.of("http://localhost:3000"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // apply CORS for all endpoints
         source.registerCorsConfiguration("/**", config);
         return source;
     }
