@@ -29,21 +29,31 @@ const PaymentSuccess = () => {
 
         if (res.ok) {
           showToast("✅ Payment successful! Thank you for your payment.", "success");
+          
+          // ✅ Redirect to feedback form after 2 seconds
+          setTimeout(() => {
+            window.location.href = `/feedback/${jobId}`;
+          }, 2000);
         } else {
           const errData = await res.json().catch(() => ({}));
           const msg =
             errData.message || errData.error || "⚠️ Server issue during confirmation.";
           showToast(msg, "warning");
+          
+          // ⚠️ On error, redirect to dashboard
+          setTimeout(() => {
+            window.location.href = "/customer/dashboard";
+          }, 3000);
         }
       } catch (err) {
         console.error("Payment confirm error:", err);
         showToast("⚠️ Error confirming payment status.", "error");
+        
+        // ❌ On error, redirect to dashboard
+        setTimeout(() => {
+          window.location.href = "/customer/dashboard";
+        }, 3000);
       }
-
-      // redirect after 3 sec
-      setTimeout(() => {
-        window.location.href = "/customer/dashboard";
-      }, 3000);
     };
 
     confirmPayment();

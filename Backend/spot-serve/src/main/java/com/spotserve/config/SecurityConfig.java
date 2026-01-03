@@ -35,20 +35,34 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                // 🔓 Public (No login needed)
+                // Public (No login needed)
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/auth/google/**").permitAll()   // ✅ ADDED
-                .requestMatchers("/oauth2/**").permitAll()            // ✅ ADDED
+                .requestMatchers("/api/auth/google/**").permitAll()
+                .requestMatchers("/oauth2/**").permitAll()
                 .requestMatchers("/api/services/**").permitAll()
                 .requestMatchers("/api/payments/**").permitAll()
+                
 
-                // 🔐 Customer Endpoints
+                // ---------- feedback rules ----------
+             // ---------- feedback rules ----------
+             // PUBLIC feedback (no login)
+             .requestMatchers("/api/feedback/public/**").permitAll()
+
+             // Admin-only feedback
+             .requestMatchers("/api/feedback/admin/**").hasRole("ADMIN")
+
+             // All other feedback requires login
+             .requestMatchers("/api/feedback/**").authenticated()
+
+                // -------------------------------------
+
+                // Customer Endpoints
                 .requestMatchers("/api/customer/**").authenticated()
 
-                // 🔐 Mechanic Endpoints
+                // Mechanic Endpoints
                 .requestMatchers("/api/mechanic/**").authenticated()
 
-                // 🔐 Admin Service Management
+                // Admin Service Management
                 .requestMatchers("/api/admin/services/**").hasRole("ADMIN")
 
                 // Everything else requires authentication

@@ -1,5 +1,5 @@
 /* Home.css — simplified, responsive, small */
-:root{
+:root {
   --accent-1: #667eea;
   --accent-2: #764ba2;
   --muted: #6c757d;
@@ -8,83 +8,239 @@
   --container-max: 1200px;
 }
 
-/* Reset / base */
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{font-family:"Poppins",sans-serif;color:#222;margin:0;overflow-x:hidden;background:#fff}
-.container{max-width:var(--container-max);margin:0 auto;padding:0 1rem}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  font-family: "Poppins", sans-serif;
+  color: #222;
+  margin: 0;
+  overflow-x: hidden;
+  background: #fff;
+}
+.container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 1rem;
+}
 
 /* Responsive type helpers */
-.h1 {font-size:clamp(1.6rem, 2.6vw + 1rem, 3.5rem); line-height:1.1; font-weight:800}
-.h2 {font-size:clamp(1.2rem, 1.6vw + .8rem, 2.5rem); font-weight:800}
-.lead {font-size:clamp(.95rem, .8vw + .7rem, 1.1rem); color:var(--muted)}
+.h1 {
+  font-size: clamp(1.6rem, 2.6vw + 1rem, 3.5rem);
+  line-height: 1.1;
+  font-weight: 800;
+}
+.h2 {
+  font-size: clamp(1.2rem, 1.6vw + 0.8rem, 2.5rem);
+  font-weight: 800;
+}
+.lead {
+  font-size: clamp(0.95rem, 0.8vw + 0.7rem, 1.1rem);
+  color: var(--muted);
+}
 
 /* HERO */
-.hero-section{
-  background:linear-gradient(135deg,var(--accent-1),var(--accent-2));
-  color:#fff; min-height: clamp(60vh, 75vh, 90vh);
-  display:flex; align-items:center; justify-content:center; position:relative; padding:3rem 0;
-   padding-top: 0 !important;
+.hero-section {
+  background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  color: #fff;
+  min-height: clamp(60vh, 75vh, 90vh);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 3rem 0;
+  padding-top: 0 !important;
   margin-top: -70px !important; /* same as navbar height */
   padding-top: calc(3rem + 70px) !important; /* keep internal spacing */
 }
 
-.hero-content{z-index:2;text-align:center;max-width:900px;margin:0 auto;padding:0 1rem}
-.hero-title{margin:0 0 .6rem}.hero-subtitle{margin:.2rem 0 1rem}
-.hero-description{margin-bottom:1.4rem;opacity:.95}
-.hero-buttons{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap}
-.hero-btn{padding:.7rem 1.6rem;border-radius:999px;font-weight:600;border:2px solid #fff;background:transparent;color:#fff;cursor:pointer}
-.hero-btn:hover{transform:translateY(-3px);background:#fff;color:var(--accent-1)}
+.hero-content {
+  z-index: 2;
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+.hero-title {
+  margin: 0 0 0.6rem;
+}
+.hero-subtitle {
+  margin: 0.2rem 0 1rem;
+}
+.hero-description {
+  margin-bottom: 1.4rem;
+  opacity: 0.95;
+}
+.hero-buttons {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.hero-btn {
+  padding: 0.7rem 1.6rem;
+  border-radius: 999px;
+  font-weight: 600;
+  border: 2px solid #fff;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+.hero-btn:hover {
+  transform: translateY(-3px);
+  background: #fff;
+  color: var(--accent-1);
+}
 
 /* Decorative light spots (keeps visual feel without many rules) */
-.hero-section::before{
-  content:"";position:absolute;inset:0;background:
-  radial-gradient(circle at 20% 50%, rgba(255,255,255,.08) 0%, transparent 40%),
-  radial-gradient(circle at 80% 80%, rgba(255,255,255,.06) 0%, transparent 30%);
-  pointer-events:none
+.hero-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+      circle at 20% 50%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(255, 255, 255, 0.06) 0%,
+      transparent 30%
+    );
+  pointer-events: none;
 }
 
 /* EMERGENCY CTA (kept simple and responsive) */
-.emergency-cta{background:rgba(255,255,255,.12);backdrop-filter:blur(6px);padding:1.5rem;border-radius:18px;margin-top:2.5rem;max-width:720px;margin-left:auto;margin-right:auto;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.08)}
-.emergency-cta h3{margin:.2rem 0 1rem;font-size:clamp(1.1rem,1.5vw,1.6rem)}
-.emergency-btn{background:#dc3545;border:none;padding:.7rem 1.4rem;border-radius:999px;font-weight:700;color:#fff;cursor:pointer}
-
-/* SECTIONS & CARDS */
-section{padding:3rem 0}
-.customer-services{background:#fff}
-.stat-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));align-items:stretch}
-.stat-card{background:var(--bg-soft);padding:1.2rem;border-radius:var(--radius);text-align:center;transition:transform .25s,box-shadow .25s}
-.stat-card:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(0,0,0,.06)}
-.stat-icon{font-size:clamp(1.8rem,2.6vw,3.5rem);margin-bottom:.5rem}
-.stat-number{font-size:clamp(1.2rem,1.8vw,2.4rem);font-weight:800;color:var(--accent-1)}
-.stat-label{color:var(--muted);margin:0;font-weight:600}
-
-/* SERVICES list wrapper — ServiceCards should adapt inside */
-.service-cards{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-
-/* SIMPLE utility for tables used in admin but harmless here */
-.table{width:100%;border-collapse:collapse}
-
-/* small visual niceties */
-.section-title{margin-bottom:.5rem;font-weight:800}
-.text-center{text-align:center}
-.mb-4{margin-bottom:1rem}
-
-/* Minimal responsive tweaks */
-@media (max-width:880px){
-  .hero-content{padding:0 1.2rem}
-  .hero-buttons{gap:.6rem}
+.emergency-cta {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  padding: 1.5rem;
+  border-radius: 18px;
+  margin-top: 2.5rem;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+.emergency-cta h3 {
+  margin: 0.2rem 0 1rem;
+  font-size: clamp(1.1rem, 1.5vw, 1.6rem);
+}
+.emergency-btn {
+  background: #dc3545;
+  border: none;
+  padding: 0.7rem 1.4rem;
+  border-radius: 999px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
 }
 
-@media (max-width:480px){
-  .hero-section{padding:2rem 0;min-height:60vh}
-  .hero-title{font-size:clamp(1.2rem,5vw,2rem)}
-  .emergency-cta{padding:1rem;border-radius:12px}
+/* SECTIONS & CARDS */
+section {
+  padding: 3rem 0;
+}
+.customer-services {
+  background: #fff;
+}
+.stat-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  align-items: stretch;
+}
+.stat-card {
+  background: var(--bg-soft);
+  padding: 1.2rem;
+  border-radius: var(--radius);
+  text-align: center;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+.stat-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+.stat-icon {
+  font-size: clamp(1.8rem, 2.6vw, 3.5rem);
+  margin-bottom: 0.5rem;
+}
+.stat-number {
+  font-size: clamp(1.2rem, 1.8vw, 2.4rem);
+  font-weight: 800;
+  color: var(--accent-1);
+}
+.stat-label {
+  color: var(--muted);
+  margin: 0;
+  font-weight: 600;
+}
+
+/* SERVICES list wrapper — ServiceCards should adapt inside */
+.service-cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+/* SIMPLE utility for tables used in admin but harmless here */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* small visual niceties */
+.section-title {
+  margin-bottom: 0.5rem;
+  font-weight: 800;
+}
+.text-center {
+  text-align: center;
+}
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+/* Minimal responsive tweaks */
+@media (max-width: 880px) {
+  .hero-content {
+    padding: 0 1.2rem;
+  }
+  .hero-buttons {
+    gap: 0.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    padding: 2rem 0;
+    min-height: 60vh;
+  }
+  .hero-title {
+    font-size: clamp(1.2rem, 5vw, 2rem);
+  }
+  .emergency-cta {
+    padding: 1rem;
+    border-radius: 12px;
+  }
 }
 
 /* keep toast simple and above everything */
-.home-toast{position:fixed;top:18px;right:18px;background:#ff4d4f;color:#fff;padding:.5rem .9rem;border-radius:8px;z-index:2000;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.12)}
-
+.home-toast {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  background: #ff4d4f;
+  color: #fff;
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  z-index: 2000;
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
 
 /* ==================== How It Works Section ==================== */
 .how-it-works-section {
@@ -154,7 +310,8 @@ section{padding:3rem 0}
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -476,24 +633,58 @@ section{padding:3rem 0}
 /* ==================== Responsive Design ==================== */
 
 @media screen and (max-width: 992px) {
-  .section-title { font-size: 2rem; }
+  .section-title {
+    font-size: 2rem;
+  }
 }
 
 @media screen and (max-width: 768px) {
-  .section-title { font-size: 1.8rem; }
-  .about-img { width: 70%; }
-  .feature-icon { width: 80px; height: 80px; }
-  .gallery-item { height: 200px; }
-  .step-icon { font-size: 3rem; }
-  .why-icon { font-size: 3rem; }
-  .testimonial-card { padding: 2rem; }
-  .cta-title { font-size: 2rem; }
-  .cta-subtitle { font-size: 1rem; }
+
+  
+  .section-title {
+    font-size: 1.8rem;
+  }
+  .about-img {
+    width: 70%;
+  }
+  .feature-icon {
+    width: 80px;
+    height: 80px;
+  }
+  .gallery-item {
+    height: 200px;
+  }
+  .step-icon {
+    font-size: 3rem;
+  }
+  .why-icon {
+    font-size: 3rem;
+  }
+  .testimonial-card {
+    padding: 2rem;
+  }
+  .cta-title {
+    font-size: 2rem;
+  }
+  .cta-subtitle {
+    font-size: 1rem;
+  }
 }
 
 @media screen and (max-width: 576px) {
-  .step-card, .feature-card, .why-card { padding: 2rem 1.5rem; }
-  .section-title { font-size: 1.5rem; }
-  .trust-icon { width: 50px; height: 50px; }
-  .gallery-item { height: 180px; }
+  .step-card,
+  .feature-card,
+  .why-card {
+    padding: 2rem 1.5rem;
+  }
+  .section-title {
+    font-size: 1.5rem;
+  }
+  .trust-icon {
+    width: 50px;
+    height: 50px;
+  }
+  .gallery-item {
+    height: 180px;
+  }
 }

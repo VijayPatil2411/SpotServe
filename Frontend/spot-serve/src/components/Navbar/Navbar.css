@@ -261,6 +261,9 @@
 
 .mobile-menu-content {
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .mobile-section {
@@ -286,6 +289,9 @@
   border-radius: 10px;
   transition: var(--transition);
   background: rgba(255, 255, 255, 0.03);
+  display: flex;
+  width: 100%;
+  justify-content: center;
 }
 
 .nav-link-mobile:hover {

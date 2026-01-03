@@ -4,6 +4,7 @@ import Footer from "../../components/Footer/Footer";
 import { Container, Row, Col, Button } from "react-bootstrap";
 import ServiceCards from "../../components/ServiceCards";
 import { getAllServices } from "../../services/customerService";
+import HomeTestimonials from "../../components/HomeTestimonials";
 
 const Home = () => {
   const [user, setUser] = useState(() => {
@@ -373,91 +374,10 @@ const Home = () => {
         </section>
 
         {/* Testimonials Section */}
-        <section className="testimonials-section py-5">
-          <Container>
-            <h2 className="text-center mb-2 section-title">What Our Customers Say</h2>
-            <p className="text-center text-muted mb-5">
-              Real feedback from real customers
-            </p>
-            <Row>
-              <Col md={4} className="mb-4">
-                <div className="testimonial-card">
-                  <div className="testimonial-rating">
-                    <span className="star">⭐</span>
-                    <span className="star">⭐</span>
-                    <span className="star">⭐</span>
-                    <span className="star">⭐</span>
-                    <span className="star">⭐</span>
-                  </div>
-                  <p className="testimonial-text">
-                    "SpotServe saved my day! My car broke down on the highway and they sent a mechanic within 20 minutes. Professional and efficient service!"
-                  </p>
-                  <div className="testimonial-author">
-                    <img 
-                      src="https://i.pravatar.cc/150?img=12" 
-                      alt="Customer" 
-                      className="author-img"
-                    />
-                    <div className="author-info">
-                      <h6>Rajesh Kumar</h6>
-                      <span>Mumbai</span>
-                    </div>
-                  </div>
-                </div>
-              </Col>
-              <Col md={4} className="mb-4">
-                <div className="testimonial-card">
-                  <div className="testimonial-rating">
-                    <span className="star">⭐</span>
-                    <span className="star">⭐</span>
-                    <span className="star">⭐</span>
-                    <span className="star">⭐</span>
-                    <span className="star">⭐</span>
-                  </div>
-                  <p className="testimonial-text">
-                    "The best vehicle service platform I've used. Transparent pricing, real-time tracking, and quality work. Highly recommend!"
-                  </p>
-                  <div className="testimonial-author">
-                    <img 
-                      src="https://i.pravatar.cc/150?img=47" 
-                      alt="Customer" 
-                      className="author-img"
-                    />
-                    <div className="author-info">
-                      <h6>Priya Sharma</h6>
-                      <span>Delhi</span>
-                    </div>
-                  </div>
-                </div>
-              </Col>
-              <Col md={4} className="mb-4">
-                <div className="testimonial-card">
-                  <div className="testimonial-rating">
-                    <span className="star">⭐</span>
-                    <span className="star">⭐</span>
-                    <span className="star">⭐</span>
-                    <span className="star">⭐</span>
-                    <span className="star">⭐</span>
-                  </div>
-                  <p className="testimonial-text">
-                    "Excellent service! The mechanic was knowledgeable and fixed my car issue quickly. Will definitely use SpotServe again."
-                  </p>
-                  <div className="testimonial-author">
-                    <img 
-                      src="https://i.pravatar.cc/150?img=33" 
-                      alt="Customer" 
-                      className="author-img"
-                    />
-                    <div className="author-info">
-                      <h6>Amit Patel</h6>
-                      <span>Bangalore</span>
-                    </div>
-                  </div>
-                </div>
-              </Col>
-            </Row>
-          </Container>
-        </section>
+        <div>
+      {/* Your existing homepage sections */}
+      <HomeTestimonials />
+    </div>
 
         {/* Trust Badges Section */}
         <section className="trust-badges-section py-5 bg-light">

@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import "./AdminMechanics.css";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080/api/admin/mechanics";
+const RATINGS_API = process.env.REACT_APP_API_BASE || "http://localhost:8080/api/admin/mechanics/ratings";
 
 const AdminMechanics = () => {
   const [mechanics, setMechanics] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [ratingsLoading, setRatingsLoading] = useState({});
 
   const [newMechanic, setNewMechanic] = useState({
     name: "",
@@ -51,12 +53,55 @@ const AdminMechanics = () => {
 
       const data = await res.json();
       setMechanics(data || []);
+
+      // Fetch ratings for all mechanics
+      if (data && data.length > 0) {
+        fetchAllRatings(data);
+      }
     } catch (err) {
       console.error("Error:", err);
       showToast("Failed to load mechanics", "error");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Fetch all ratings in parallel
+  const fetchAllRatings = async (mechanicsList) => {
+    const token = localStorage.getItem("token");
+
+    const updatedMechanics = await Promise.all(
+      mechanicsList.map(async (mech) => {
+        try {
+          setRatingsLoading((prev) => ({ ...prev, [mech.id]: true }));
+
+          const res = await fetch(`${RATINGS_API}/${mech.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (!res.ok) throw new Error("Failed to fetch rating");
+
+          const ratingData = await res.json();
+
+          return {
+            ...mech,
+            averageRating: ratingData.averageRating || 0,
+            totalRatings: ratingData.totalRatings || 0,
+          };
+        } catch (err) {
+          console.error(`Error fetching rating for mechanic ${mech.id}:`, err);
+          return {
+            ...mech,
+            averageRating: 0,
+            totalRatings: 0,
+          };
+        } finally {
+          setRatingsLoading((prev) => ({ ...prev, [mech.id]: false }));
+        }
+      })
+    );
+
+    setMechanics(updatedMechanics);
   };
 
   const handleDeleteMechanic = async (id, name) => {
@@ -140,9 +185,28 @@ const AdminMechanics = () => {
     return `${Math.round((mech.completedJobs / total) * 100)}%`;
   };
 
+  // Render rating with loading state
+  const renderRating = (mech) => {
+    const isLoading = ratingsLoading[mech.id];
+
+    if (isLoading) {
+      return <span className="text-muted">Loading...</span>;
+    }
+
+    if (mech.averageRating && mech.averageRating > 0) {
+      return (
+        <>
+          <span className="text-warning">{mech.averageRating.toFixed(1)}</span>
+          <span className="text-muted small"> ({mech.totalRatings} reviews)</span>
+        </>
+      );
+    }
+
+    return <span className="text-muted">—</span>;
+  };
+
   return (
     <div className="admin-mechanics container py-4">
-
       {/* TOAST */}
       {toast.show && (
         <div className={`toast-notification toast-${toast.type}`}>
@@ -152,7 +216,10 @@ const AdminMechanics = () => {
 
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="fw-bold text-dark page-title">👨‍🔧 Manage Mechanics</h2>
-        <button className="btn btn-primary stylish-btn" onClick={() => setShowAddModal(true)}>
+        <button
+          className="btn btn-primary stylish-btn"
+          onClick={() => setShowAddModal(true)}
+        >
           ➕ Add Mechanic
         </button>
       </div>
@@ -172,10 +239,16 @@ const AdminMechanics = () => {
               </div>
 
               <div className="card-body">
-                <p className="m-0"><strong>📞 Phone:</strong> {mech.phone || "N/A"}</p>
+                <p className="m-0">
+                  <strong>📞 Phone:</strong> {mech.phone || "N/A"}
+                </p>
 
-                <p className="m-0"><strong>🏪 Shop:</strong> {mech.shopName || "—"}</p>
-                <p className="m-0"><strong>📍 Address:</strong> {mech.address || "—"}</p>
+                <p className="m-0">
+                  <strong>🏪 Shop:</strong> {mech.shopName || "—"}
+                </p>
+                <p className="m-0">
+                  <strong>📍 Address:</strong> {mech.address || "—"}
+                </p>
 
                 <p className="m-0">
                   <strong>📌 Location:</strong>{" "}
@@ -189,8 +262,12 @@ const AdminMechanics = () => {
 
               <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <span className="badge bg-success me-1">✔ {mech.completedJobs || 0}</span>
-                  <span className="badge bg-warning text-dark">🔧 {mech.ongoingJobs || 0}</span>
+                  <span className="badge bg-success me-1">
+                    ✔ {mech.completedJobs || 0}
+                  </span>
+                  <span className="badge bg-warning text-dark">
+                    🔧 {mech.ongoingJobs || 0}
+                  </span>
                 </div>
                 <button
                   className="btn btn-danger btn-sm delete-btn"
@@ -203,13 +280,13 @@ const AdminMechanics = () => {
               <div className="mt-3 text-center mechanic-stats">
                 <p className="small text-muted">
                   Completion Rate:{" "}
-                  <strong className="text-success">{getCompletionRate(mech)}</strong>
+                  <strong className="text-success">
+                    {getCompletionRate(mech)}
+                  </strong>
                 </p>
                 <p className="small text-muted">
                   ⭐ Rating:{" "}
-                  <span className="text-warning">
-                    {mech.rating ? mech.rating.toFixed(1) : "—"}
-                  </span>
+                  <strong className="text-warning">{renderRating(mech)}</strong>
                 </p>
               </div>
             </div>
@@ -219,8 +296,14 @@ const AdminMechanics = () => {
 
       {/* ADD MECHANIC MODAL */}
       {showAddModal && (
-        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-          <div className="modal-card add-mechanic-card animate-modal" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="modal-overlay"
+          onClick={() => setShowAddModal(false)}
+        >
+          <div
+            className="modal-card add-mechanic-card animate-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h4 className="fw-bold mb-3 text-center">➕ Add New Mechanic</h4>
 
             <form onSubmit={handleAddMechanic}>
@@ -229,7 +312,9 @@ const AdminMechanics = () => {
                 className="form-control mb-2"
                 placeholder="Full Name"
                 value={newMechanic.name}
-                onChange={(e) => setNewMechanic({ ...newMechanic, name: e.target.value })}
+                onChange={(e) =>
+                  setNewMechanic({ ...newMechanic, name: e.target.value })
+                }
                 required
               />
 
@@ -238,7 +323,9 @@ const AdminMechanics = () => {
                 className="form-control mb-2"
                 placeholder="Email"
                 value={newMechanic.email}
-                onChange={(e) => setNewMechanic({ ...newMechanic, email: e.target.value })}
+                onChange={(e) =>
+                  setNewMechanic({ ...newMechanic, email: e.target.value })
+                }
                 required
               />
 
@@ -247,7 +334,9 @@ const AdminMechanics = () => {
                 className="form-control mb-2"
                 placeholder="Password"
                 value={newMechanic.password}
-                onChange={(e) => setNewMechanic({ ...newMechanic, password: e.target.value })}
+                onChange={(e) =>
+                  setNewMechanic({ ...newMechanic, password: e.target.value })
+                }
                 required
               />
 
@@ -256,7 +345,9 @@ const AdminMechanics = () => {
                 className="form-control mb-2"
                 placeholder="Phone"
                 value={newMechanic.phone}
-                onChange={(e) => setNewMechanic({ ...newMechanic, phone: e.target.value })}
+                onChange={(e) =>
+                  setNewMechanic({ ...newMechanic, phone: e.target.value })
+                }
               />
 
               <input
@@ -264,7 +355,9 @@ const AdminMechanics = () => {
                 className="form-control mb-2"
                 placeholder="Shop Name"
                 value={newMechanic.shopName}
-                onChange={(e) => setNewMechanic({ ...newMechanic, shopName: e.target.value })}
+                onChange={(e) =>
+                  setNewMechanic({ ...newMechanic, shopName: e.target.value })
+                }
               />
 
               <input
@@ -272,7 +365,9 @@ const AdminMechanics = () => {
                 className="form-control mb-2"
                 placeholder="Address"
                 value={newMechanic.address}
-                onChange={(e) => setNewMechanic({ ...newMechanic, address: e.target.value })}
+                onChange={(e) =>
+                  setNewMechanic({ ...newMechanic, address: e.target.value })
+                }
               />
 
               <div className="d-flex gap-2 mb-2">
@@ -281,7 +376,12 @@ const AdminMechanics = () => {
                   className="form-control"
                   placeholder="Latitude"
                   value={newMechanic.latitude}
-                  onChange={(e) => setNewMechanic({ ...newMechanic, latitude: e.target.value })}
+                  onChange={(e) =>
+                    setNewMechanic({
+                      ...newMechanic,
+                      latitude: e.target.value,
+                    })
+                  }
                 />
 
                 <input
@@ -289,11 +389,20 @@ const AdminMechanics = () => {
                   className="form-control"
                   placeholder="Longitude"
                   value={newMechanic.longitude}
-                  onChange={(e) => setNewMechanic({ ...newMechanic, longitude: e.target.value })}
+                  onChange={(e) =>
+                    setNewMechanic({
+                      ...newMechanic,
+                      longitude: e.target.value,
+                    })
+                  }
                 />
               </div>
 
-              <button type="button" className="btn btn-outline-info w-100 mb-2" onClick={detectLocation}>
+              <button
+                type="button"
+                className="btn btn-outline-info w-100 mb-2"
+                onClick={detectLocation}
+              >
                 📍 Detect My Location
               </button>
 
@@ -303,7 +412,10 @@ const AdminMechanics = () => {
             </form>
 
             <div className="text-center mt-3">
-              <button className="btn btn-secondary" onClick={() => setShowAddModal(false)}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowAddModal(false)}
+              >
                 Cancel
               </button>
             </div>

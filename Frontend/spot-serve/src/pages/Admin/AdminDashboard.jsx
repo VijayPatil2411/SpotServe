@@ -1,5 +1,5 @@
-// src/pages/Admin/AdminDashboard.jsx
 import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import "./AdminDashboard.css";
 import api from "../../services/api";
 import { useToast } from "../../components/Toast";
@@ -7,6 +7,7 @@ import { useToast } from "../../components/Toast";
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080/api";
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   /** STATE */
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
@@ -24,7 +25,11 @@ const AdminDashboard = () => {
   /* SERVICES */
   const [services, setServices] = useState([]);
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
-  const [serviceForm, setServiceForm] = useState({ id: null, name: "", basePrice: "" });
+  const [serviceForm, setServiceForm] = useState({
+    id: null,
+    name: "",
+    basePrice: "",
+  });
   const [isEditing, setIsEditing] = useState(false);
 
   /* USERS / MECHANICS */
@@ -59,7 +64,13 @@ const AdminDashboard = () => {
   const loadAllJobs = async () => {
     const token = localStorage.getItem("token");
     try {
-      const statuses = ["Completed", "Pending", "Accepted", "Ongoing", "Cancelled"];
+      const statuses = [
+        "Completed",
+        "Pending",
+        "Accepted",
+        "Ongoing",
+        "Cancelled",
+      ];
       let combined = [];
       for (let st of statuses) {
         const res = await fetch(
@@ -114,7 +125,10 @@ const AdminDashboard = () => {
       const raw = await res.json();
       const parsed = parseJobs(raw);
       if (parsed.length) setJobs(parsed);
-      else setJobs(allJobs.filter((j) => (j.status || "").toUpperCase() === status));
+      else
+        setJobs(
+          allJobs.filter((j) => (j.status || "").toUpperCase() === status)
+        );
     } catch (err) {
       console.error(`fetchJobsByStatus(${status}) error:`, err);
       setJobs(allJobs.filter((j) => (j.status || "").toUpperCase() === status));
@@ -240,11 +254,10 @@ const AdminDashboard = () => {
     } finally {
       setFetchingPanel(false);
     }
-    setPanelView("mechanics"); // show mechanics only
+    setPanelView("mechanics");
     setPanelOpen(true);
   };
 
-  // ---- silent fetchers (do not open panels) ----
   const fetchUsersSilent = async () => {
     try {
       const res = await fetch(`${API_BASE}/admin/users`, {
@@ -255,7 +268,6 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error("fetchUsersSilent error:", err);
       setUsersList([]);
-      // don't spam toast on initial load, but log once
     }
   };
 
@@ -272,13 +284,17 @@ const AdminDashboard = () => {
     }
   };
   // ----------------------------------------------
-
-  /** Summary of jobs per mechanic (unchanged) */
   const mechanicsSummary = useMemo(() => {
     const map = {};
     allJobs.forEach((j) => {
       const name = j.mechanicName || "Unassigned";
-      map[name] = map[name] || { name, count: 0, accepted: 0, ongoing: 0, completed: 0 };
+      map[name] = map[name] || {
+        name,
+        count: 0,
+        accepted: 0,
+        ongoing: 0,
+        completed: 0,
+      };
       map[name].count++;
       const st = (j.status || "").toUpperCase();
       if (st === "ACCEPTED") map[name].accepted++;
@@ -292,23 +308,60 @@ const AdminDashboard = () => {
 
   if (loading) return <p className="text-center mt-5">Loading dashboard...</p>;
 
-  // sort mechanicsSummary by count desc to get top mechanic reliably
-  const sortedMechanicsSummary = [...mechanicsSummary].sort((a, b) => b.count - a.count);
-  const topMechanic =
-    sortedMechanicsSummary[0] ? `${sortedMechanicsSummary[0].name} (${sortedMechanicsSummary[0].count})` : "-";
+  const sortedMechanicsSummary = [...mechanicsSummary].sort(
+    (a, b) => b.count - a.count
+  );
+  const topMechanic = sortedMechanicsSummary[0]
+    ? `${sortedMechanicsSummary[0].name} (${sortedMechanicsSummary[0].count})`
+    : "-";
 
   const cards = [
-    { key: "TOTAL", title: "Total Requests", value: stats.total ?? 0, icon: "📦", onClick: openTotalPanel },
-    { key: "COMPLETED", title: "Completed", value: stats.completed ?? 0, icon: "✅", onClick: () => fetchJobsByStatus("COMPLETED") },
-    { key: "PENDING", title: "Pending", value: stats.pending ?? 0, icon: "⏳", onClick: () => fetchJobsByStatus("PENDING") },
-    { key: "ACCEPTED", title: "Accepted", value: stats.accepted ?? 0, icon: "🧰", onClick: () => fetchJobsByStatus("ACCEPTED") },
-    { key: "ONGOING", title: "Ongoing", value: stats.ongoing ?? 0, icon: "⚙️", onClick: () => fetchJobsByStatus("ONGOING") },
-    { key: "CANCELLED", title: "Cancelled", value: stats.cancelled ?? 0, icon: "❌", onClick: () => fetchJobsByStatus("CANCELLED") },
+    {
+      key: "TOTAL",
+      title: "Total Requests",
+      value: stats.total ?? 0,
+      icon: "📦",
+      onClick: openTotalPanel,
+    },
+    {
+      key: "COMPLETED",
+      title: "Completed",
+      value: stats.completed ?? 0,
+      icon: "✅",
+      onClick: () => fetchJobsByStatus("COMPLETED"),
+    },
+    {
+      key: "PENDING",
+      title: "Pending",
+      value: stats.pending ?? 0,
+      icon: "⏳",
+      onClick: () => fetchJobsByStatus("PENDING"),
+    },
+    {
+      key: "ACCEPTED",
+      title: "Accepted",
+      value: stats.accepted ?? 0,
+      icon: "🧰",
+      onClick: () => fetchJobsByStatus("ACCEPTED"),
+    },
+    {
+      key: "ONGOING",
+      title: "Ongoing",
+      value: stats.ongoing ?? 0,
+      icon: "⚙️",
+      onClick: () => fetchJobsByStatus("ONGOING"),
+    },
+    {
+      key: "CANCELLED",
+      title: "Cancelled",
+      value: stats.cancelled ?? 0,
+      icon: "❌",
+      onClick: () => fetchJobsByStatus("CANCELLED"),
+    },
 
     {
       key: "MECHS",
       title: "Total Mechanics",
-      // prefer server stat, fallback to mechanicsList length (we fetch silently on init)
       value: stats.totalMechanics ?? (mechanicsList ? mechanicsList.length : 0),
       icon: "🔧",
       onClick: () => loadMechanics(),
@@ -316,8 +369,7 @@ const AdminDashboard = () => {
 
     {
       key: "USERS",
-      title: "Total Users",
-      // prefer server stat, fallback to usersList length (we fetch silently on init)
+      title: "Total Customers",
       value: stats.totalUsers ?? (usersList ? usersList.length : 0),
       icon: "👥",
       onClick: () => loadUsers(),
@@ -329,6 +381,15 @@ const AdminDashboard = () => {
       value: topMechanic,
       icon: "⭐",
       onClick: () => loadMechanics(),
+    },
+    
+ 
+    {
+      key: "FEEDBACK",
+      title: "Total Feedback",
+      value: stats.totalFeedback ?? 0,
+      icon: "📝",
+      onClick: () => navigate("/admin/feedback"),
     },
   ];
 
@@ -346,24 +407,37 @@ const AdminDashboard = () => {
               <div className="tile-title">{c.title}</div>
             </div>
             <div className="tile-value">{c.value}</div>
-            <div className="tile-action">View <span className="chev">›</span></div>
+            <div className="tile-action">
+              View <span className="chev">›</span>
+            </div>
           </div>
         ))}
       </div>
 
       {/* Summary strip */}
       <div className="summary-strip">
-        <div>Total Mechanics: <strong>{stats.totalMechanics ?? (mechanicsList ? mechanicsList.length : 0)}</strong></div>
-        <div>Total Jobs: <strong>{stats.total ?? allJobs.length}</strong></div>
+        <div>
+          Total Mechanics:{" "}
+          <strong>
+            {stats.totalMechanics ?? (mechanicsList ? mechanicsList.length : 0)}
+          </strong>
+        </div>
+        <div>
+          Total Jobs: <strong>{stats.total ?? allJobs.length}</strong>
+        </div>
         {/* <div>Total Users: <strong>{stats.totalUsers ?? "-"}</strong></div> */}
-        <div>Last Refresh: <strong>{new Date().toLocaleString()}</strong></div>
+        <div>
+          Last Refresh: <strong>{new Date().toLocaleString()}</strong>
+        </div>
       </div>
 
       {/* SERVICES SECTION (unchanged) */}
       <div className="services-section mt-4">
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h4 className="fw-bold">Services</h4>
-          <button className="btn btn-primary" onClick={openAddService}>+ Add Service</button>
+          <button className="btn btn-primary" onClick={openAddService}>
+            + Add Service
+          </button>
         </div>
 
         <table className="table table-hover table-admin">
@@ -377,7 +451,11 @@ const AdminDashboard = () => {
           </thead>
           <tbody>
             {services.length === 0 ? (
-              <tr><td colSpan="4" className="text-center text-muted">No services found</td></tr>
+              <tr>
+                <td colSpan="4" className="text-center text-muted">
+                  No services found
+                </td>
+              </tr>
             ) : (
               services.map((s, i) => (
                 <tr key={s.id}>
@@ -386,18 +464,17 @@ const AdminDashboard = () => {
                   <td>₹{s.basePrice}</td>
                   <td>
                     <button
-  className="btn btn-sm btn-custom btn-edit me-2"
-  onClick={() => openEditService(s)}
->
-  Edit
-</button>
-<button
-  className="btn btn-sm btn-custom btn-delete"
-  onClick={() => handleDeleteService(s.id)}
->
-  Delete
-</button>
-
+                      className="btn btn-sm btn-custom btn-edit me-2"
+                      onClick={() => openEditService(s)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn btn-sm btn-custom btn-delete"
+                      onClick={() => handleDeleteService(s.id)}
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))
@@ -408,7 +485,10 @@ const AdminDashboard = () => {
 
       {/* Service modal */}
       {serviceModalOpen && (
-        <div className="modal-overlay" onClick={() => setServiceModalOpen(false)}>
+        <div
+          className="modal-overlay"
+          onClick={() => setServiceModalOpen(false)}
+        >
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <h5 className="fw-bold mb-3 text-center">
               {isEditing ? "Edit Service" : "Add Service"}
@@ -418,7 +498,9 @@ const AdminDashboard = () => {
               className="form-control mb-3"
               placeholder="Service Name"
               value={serviceForm.name}
-              onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })}
+              onChange={(e) =>
+                setServiceForm({ ...serviceForm, name: e.target.value })
+              }
             />
 
             <input
@@ -426,14 +508,22 @@ const AdminDashboard = () => {
               className="form-control mb-3"
               placeholder="Base Price"
               value={serviceForm.basePrice}
-              onChange={(e) => setServiceForm({ ...serviceForm, basePrice: e.target.value })}
+              onChange={(e) =>
+                setServiceForm({ ...serviceForm, basePrice: e.target.value })
+              }
             />
 
-            <button className="btn btn-success w-100 mb-2" onClick={handleSaveService}>
+            <button
+              className="btn btn-success w-100 mb-2"
+              onClick={handleSaveService}
+            >
               {isEditing ? "Update Service" : "Add Service"}
             </button>
 
-            <button className="btn btn-secondary w-100" onClick={() => setServiceModalOpen(false)}>
+            <button
+              className="btn btn-secondary w-100"
+              onClick={() => setServiceModalOpen(false)}
+            >
               Cancel
             </button>
           </div>
@@ -447,7 +537,9 @@ const AdminDashboard = () => {
             <div className="panel-header">
               <h4>
                 {panelView === "list" &&
-                  (selectedStatus === "TOTAL" ? "All Requests" : `${selectedStatus} Jobs`)}
+                  (selectedStatus === "TOTAL"
+                    ? "All Requests"
+                    : `${selectedStatus} Jobs`)}
                 {panelView === "mechanics" && "Mechanics"}
                 {panelView === "users" && "Users"}
               </h4>
@@ -463,7 +555,12 @@ const AdminDashboard = () => {
                 )}
 
                 {/* Tabs removed on purpose — panel shows only the relevant data */}
-                <button className="close-btn" onClick={() => setPanelOpen(false)}>✕</button>
+                <button
+                  className="close-btn"
+                  onClick={() => setPanelOpen(false)}
+                >
+                  ✕
+                </button>
               </div>
             </div>
 
@@ -485,10 +582,14 @@ const AdminDashboard = () => {
                   </thead>
                   <tbody>
                     {jobs.length === 0 ? (
-                      <tr><td colSpan="6" className="text-center text-muted">No jobs found</td></tr>
+                      <tr>
+                        <td colSpan="6" className="text-center text-muted">
+                          No jobs found
+                        </td>
+                      </tr>
                     ) : (
                       jobs
-                        .filter(job => {
+                        .filter((job) => {
                           // if search present, match against service name or status (simple)
                           if (!searchInPanel) return true;
                           const q = searchInPanel.toLowerCase();
@@ -503,7 +604,15 @@ const AdminDashboard = () => {
                             <td>{i + 1}</td>
                             <td>{job.id}</td>
                             <td>{job.serviceName}</td>
-                            <td><span className={`badge status-${(job.status || "").toLowerCase()}`}>{job.status}</span></td>
+                            <td>
+                              <span
+                                className={`badge status-${(
+                                  job.status || ""
+                                ).toLowerCase()}`}
+                              >
+                                {job.status}
+                              </span>
+                            </td>
                             <td>{job.location}</td>
                             <td>{niceDate(job.createdAt)}</td>
                           </tr>
@@ -528,7 +637,11 @@ const AdminDashboard = () => {
                   </thead>
                   <tbody>
                     {mechanicsList.length === 0 ? (
-                      <tr><td colSpan="8" className="text-center text-muted">No mechanics found</td></tr>
+                      <tr>
+                        <td colSpan="8" className="text-center text-muted">
+                          No mechanics found
+                        </td>
+                      </tr>
                     ) : (
                       mechanicsList.map((m, i) => (
                         <tr key={m.id}>
@@ -560,7 +673,11 @@ const AdminDashboard = () => {
                   </thead>
                   <tbody>
                     {usersList.length === 0 ? (
-                      <tr><td colSpan="6" className="text-center text-muted">No users found</td></tr>
+                      <tr>
+                        <td colSpan="6" className="text-center text-muted">
+                          No users found
+                        </td>
+                      </tr>
                     ) : (
                       usersList.map((u, i) => (
                         <tr key={u.id}>
@@ -580,7 +697,6 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

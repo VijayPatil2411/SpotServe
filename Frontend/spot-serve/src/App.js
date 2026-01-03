@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import CustomerFeedback from "./pages/Customer/CustomerFeedback";
+import AdminFeedback from "./pages/Admin/AdminFeedback";
 
 import {
   BrowserRouter as Router,
@@ -121,6 +123,7 @@ const App = () => {
           }
         />
         <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/feedback/:jobId" element={<CustomerFeedback />} />
 
         {/* Mechanic Routes */}
         <Route
@@ -154,6 +157,14 @@ const App = () => {
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
               <AdminMechanics />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/feedback"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AdminFeedback />
             </ProtectedRoute>
           }
         />
